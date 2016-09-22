@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">HRV</string>
+    <string name="unknown_device">Unknown Device</string>
     <string name="connect_device">CONNECT TO DEVICE</string>
+    <string name="connected">CONNECTED</string>
+    <string name="disconnected">DISCONNECTED</string>
+    <string name="select_device">Please select device from list:</string>
 </resources>

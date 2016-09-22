@@ -16,5 +16,18 @@
         android:layout_height="wrap_content"
         android:id="@+id/btnConnectDevice"
         android:text="@string/connect_device"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:text="@string/select_device"/>
+
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10sp"
+        android:id="@+id/lstvwDevices"></ListView>
 
 </LinearLayout>
