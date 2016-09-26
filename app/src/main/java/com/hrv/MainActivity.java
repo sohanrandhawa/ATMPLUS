@@ -8,12 +8,14 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.ParcelUuid;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -27,9 +29,12 @@ import android.widget.ListView;
 
 import com.hrv.adapters.DeviceSelectorAdapter;
 import com.hrv.controller.Constants;
+import com.hrv.controller.HRVAppInstance;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity  implements View.OnClickListener{
 
@@ -46,6 +51,8 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     private  ArrayList<BluetoothDevice> leDevices=new ArrayList<>();
     private ListView mLstVwDevices;
     private ProgressDialog pDialog;
+    private final String HEART_RATE_DESCRIPTOR_STRING ="0000180d-0000-1000-8000-00805f9b34fb";
+    private UUID[] deviceUuidArray= {UUID.fromString(HEART_RATE_DESCRIPTOR_STRING)};
 
 
 
@@ -122,9 +129,9 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         mLstVwDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                final Intent intent = new Intent(MainActivity.this, BleDataActivity.class);
-                intent.putExtra(Constants.EXTRAS_DEVICE_NAME, leDevices.get(i).getName());
-                intent.putExtra(Constants.EXTRAS_DEVICE_ADDRESS, leDevices.get(i).getAddress());
+                final Intent intent = new Intent(MainActivity.this, DataLinkActivity.class);
+
+                HRVAppInstance.getAppInstance().setCurrentBLEDevice(leDevices.get(i));
                 startActivity(intent);
             }
         });
@@ -304,7 +311,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             startBleScanForLolipop(bluetoothAdapter);
                         }else{
-                            bluetoothAdapter.startLeScan(mLeScanCallback);
+                            bluetoothAdapter.startLeScan(deviceUuidArray,mLeScanCallback);
                         }
 
                     }
@@ -337,6 +344,10 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private  void startBleScanForLolipop(BluetoothAdapter bluetoothAdapter ){
         bluetoothLeScanner =  bluetoothAdapter.getBluetoothLeScanner();
+        ScanFilter filter = new ScanFilter.Builder()
+                            .setServiceUuid(new ParcelUuid(UUID.fromString(HEART_RATE_DESCRIPTOR_STRING)))
+                            .build();
+List<ScanFilter> filterList = new  ArrayList<ScanFilter>();
         sCallback =new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
@@ -351,7 +362,8 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 super.onScanFailed(errorCode);
             }
         };
-        bluetoothLeScanner.startScan(sCallback);
+        bluetoothLeScanner.startScan(filterList,null,sCallback);
+        //bluetoothLeScanner.startScan(sCallback);
     }
 
 
