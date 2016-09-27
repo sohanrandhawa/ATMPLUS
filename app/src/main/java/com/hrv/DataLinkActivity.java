@@ -13,6 +13,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.hrv.controller.BluetoothLeService;
 import com.hrv.controller.HRVAppInstance;
@@ -33,6 +34,7 @@ public class DataLinkActivity extends Activity {
     private BluetoothLeService bluetoothService;
     private final String HEART_RATE_SERVICE_CONST="0000180d-0000-1000-8000-00805f9b34fb";
     private final UUID HEART_RATE_SERVICE_UUID = UUID.fromString(HEART_RATE_SERVICE_CONST);
+    private TextView mTxtVwReading;
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -41,6 +43,7 @@ public class DataLinkActivity extends Activity {
 
         currentBleDevice= HRVAppInstance.getAppInstance().getCurrentBLEDevice();
         final Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+        mTxtVwReading=(TextView)findViewById(R.id.txtvwReading);
         bindService(gattServiceIntent, serviceConnection, BIND_AUTO_CREATE);
     }
 
@@ -65,12 +68,25 @@ public class DataLinkActivity extends Activity {
                     initHeartRateReading();
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                //displayData(intent.getStringExtra(BleService.EXTRA_SERVICE_UUID), intent.getStringExtra(BleService.EXTRA_TEXT));
+
+
+               int heartRate = intent.getIntExtra("HEART_RATE",0);
+               int rRvalue = intent.getIntExtra("RR_VALUE",0);
+
+                updateDataonUI(heartRate,rRvalue);
 
             }
         }
     };
 
+
+
+
+    private void updateDataonUI(int hRate, int rrValue){
+        mTxtVwReading.setText("HEART-RATE: "+Integer.toString(hRate)+" \n"
+                               +"R.R VALUE: "+Integer.toString(rrValue) );
+
+    }
 
 
     private void initHeartRateReading(){

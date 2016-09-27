@@ -47,6 +47,7 @@ public class BluetoothLeService extends Service {
             "com.hrv.EXTRA_DATA";
     private final String HEART_RATE_DESCRIPTOR_STRING ="0000180d-0000-1000-8000-00805f9b34fb";
     private UUID UUID_HEART_RATE_MEASUREMENT= UUID.fromString(HEART_RATE_DESCRIPTOR_STRING);
+    private final UUID UUID_HEART_RATE_CHARACTERTISTIC = UUID.fromString("00002A37-0000-1000-8000-00805f9b34fb");
 
 
 
@@ -96,6 +97,13 @@ public class BluetoothLeService extends Service {
                         broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
                     }
                 }
+                @Override
+                // Characteristic notification
+                public void onCharacteristicChanged(BluetoothGatt gatt,
+                                                    BluetoothGattCharacteristic characteristic) {
+                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                }
+
             };
 
 
@@ -105,28 +113,45 @@ public class BluetoothLeService extends Service {
 
         // This is special handling for the Heart Rate Measurement profile. Data
         // parsing is carried out as per profile specifications.
-        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
-            int flag = characteristic.getProperties();
+        if (UUID_HEART_RATE_CHARACTERTISTIC.equals(characteristic.getUuid())) {
+            byte[] data = characteristic.getValue();
+            int flag = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
             int format = -1;
+            int energy = -1;
+            int offset = 1;
+            int rr_count = 0;
             if ((flag & 0x01) != 0) {
                 format = BluetoothGattCharacteristic.FORMAT_UINT16;
-                Log.d(TAG, "Heart rate format UINT16.");
+               // Logger.trace("Heart rate format UINT16.");
+                offset = 3;
             } else {
                 format = BluetoothGattCharacteristic.FORMAT_UINT8;
-                Log.d(TAG, "Heart rate format UINT8.");
+                //Logger.trace("Heart rate format UINT8.");
+                offset = 2;
             }
             final int heartRate = characteristic.getIntValue(format, 1);
-            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
-            intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
-        } else {
-            // For all other profiles, writes the data formatted in HEX.
-            final byte[] data = characteristic.getValue();
-            if (data != null && data.length > 0) {
-                final StringBuilder stringBuilder = new StringBuilder(data.length);
-                for(byte byteChar : data)
-                    stringBuilder.append(String.format("%02X ", byteChar));
-                intent.putExtra(EXTRA_DATA, new String(data) + "\n" +
-                        stringBuilder.toString());
+            intent.putExtra("HEART_RATE",heartRate);
+            //Logger.trace("Received heart rate: {}", heartRate);
+            if ((flag & 0x08) != 0) {
+                // calories present
+                energy = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+                offset += 2;
+              //  Logger.trace("Received energy: {}", energy);
+            }
+            if ((flag & 0x10) != 0) {
+                // RR stuff.
+                rr_count = ((characteristic.getValue()).length - offset) / 2;
+                int mRr_values[]={};
+
+                int rrValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+             /**
+                for (int i = 0; i < rr_count; i++) {
+                    mRr_values[i] = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+                    offset += 2;
+                    //Logger.trace("Received RR: {}", mRr_values[i]);
+                }
+              */
+                intent.putExtra("RR_VALUE",rrValue);
             }
         }
         sendBroadcast(intent);
@@ -179,7 +204,7 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt= HRVAppInstance.getAppInstance()
                         .getCurrentBLEDevice()
                         .connectGatt(BluetoothLeService.this,false,mGattCallback);
-       // mBluetoothGatt.connect();
+        mBluetoothGatt.connect();
     }
 
 
@@ -194,13 +219,22 @@ public class BluetoothLeService extends Service {
     public void enableCharacteristicsUpdate(BluetoothGattCharacteristic characteristic){
             if(characteristic!=null && mBluetoothGatt!=null){
 
+
+                mBluetoothGatt.setCharacteristicNotification(characteristic,true);
+                BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                        UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                mBluetoothGatt.writeDescriptor(descriptor);
+
+
+               /*
                 UUID uuid = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
                 BluetoothGattDescriptor descriptor = characteristic.getDescriptor(uuid);
                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
                 mBluetoothGatt.writeDescriptor(descriptor);
-
-                mBluetoothGatt.setCharacteristicNotification(characteristic,true);
-                mBluetoothGatt.readCharacteristic(characteristic);
+                */
+                //mBluetoothGatt.setCharacteristicNotification(characteristic,true);
+               // mBluetoothGatt.readCharacteristic(characteristic);
             }
     }
 }

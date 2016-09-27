@@ -23,7 +23,7 @@
             android:screenOrientation="portrait"/>
         <activity android:name=".DataLinkActivity"
             android:screenOrientation="portrait"/>
-        <service android:name="com.hrv.sensor.BleService" android:enabled="true"/>
+
         <service android:name="com.hrv.controller.BluetoothLeService" android:enabled="true"/>
     </application>
     <uses-permission android:name="android.permission.BLUETOOTH"/>

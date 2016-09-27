@@ -130,7 +130,6 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 final Intent intent = new Intent(MainActivity.this, DataLinkActivity.class);
-
                 HRVAppInstance.getAppInstance().setCurrentBLEDevice(leDevices.get(i));
                 startActivity(intent);
             }
