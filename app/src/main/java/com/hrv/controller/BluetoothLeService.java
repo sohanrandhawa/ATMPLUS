@@ -14,6 +14,8 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -143,15 +145,17 @@ public class BluetoothLeService extends Service {
                 rr_count = ((characteristic.getValue()).length - offset) / 2;
                 int mRr_values[]={};
 
-                int rrValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
-             /**
+              //  int rrValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+                ArrayList<Integer> rrArray = new ArrayList<>();
                 for (int i = 0; i < rr_count; i++) {
-                    mRr_values[i] = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+                   // mRr_values[i] = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+                    rrArray.add(characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset));
                     offset += 2;
                     //Logger.trace("Received RR: {}", mRr_values[i]);
                 }
-              */
-                intent.putExtra("RR_VALUE",rrValue);
+                // add to master RR list
+                HRVAppInstance.getAppInstance().getRR_READINGS().addAll(rrArray);
+                intent.putExtra("RR_VALUE",rrArray.get(0));
             }
         }
         sendBroadcast(intent);
