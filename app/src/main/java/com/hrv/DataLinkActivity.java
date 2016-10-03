@@ -1,6 +1,7 @@
 package com.hrv;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -10,17 +11,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.hrv.computation.MathHelper;
 import com.hrv.controller.BluetoothLeService;
 import com.hrv.controller.HRVAppInstance;
+import com.hrv.models.SessionTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +49,11 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
     private TextView mtxtVwComputedRR;
     private Button mBtnStart, mBtnStop;
     private long startTime=0, endTime=0, currentTime=0;
+    private MathHelper mathHelper= new MathHelper();
+    private TextView mTxtVwRMS;
+    private TextView mTxtVwLnRms;
+    private ProgressDialog pDialog;
+    private boolean isSessionLive=false;
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -55,6 +66,12 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
         mtxtVwComputedRR=(TextView)findViewById(R.id.txtvwComputedHeartRate);
         mBtnStart=(Button)findViewById(R.id.btnStart);
         mBtnStop=(Button)findViewById(R.id.btnStop);
+        mTxtVwRMS=(TextView)findViewById(R.id.txtvwRMS);
+        mTxtVwLnRms=(TextView)findViewById(R.id.txtvwLnRMS);
+        pDialog = new ProgressDialog(DataLinkActivity.this);
+        pDialog.setTitle("HRV-DEMO");
+        pDialog.setMessage("processing session data, please wait...");
+        pDialog.setCancelable(false);
         mBtnStop.setEnabled(false);
         mBtnStart.setOnClickListener(this);
         mBtnStop.setOnClickListener(this);
@@ -101,7 +118,7 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
         mTxtVwReading.setText("HEART-RATE: "+Integer.toString(hRate)+" \n"
                                +"R.R VALUE: "+Integer.toString(rrValue) );
 
-        if(!mBtnStart.isEnabled()){
+        if(isSessionLive){
             startTime=System.currentTimeMillis();
             computeHRfromRR();
         }
@@ -125,7 +142,12 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
                // long heartRateMeasured = (long) sum / (rrReadings.size());
                 long heartRateMeasured = (sum/(rrReadings.size()*1000))*60;
 
-                mtxtVwComputedRR.setText(Long.toString(heartRateMeasured));
+                mtxtVwComputedRR.setText(
+                                    "SDNN: "
+                                    +Double.toString(mathHelper.computeSDNN(rrReadings)));
+                Double rmsValue = mathHelper.computeRMS(rrReadings);
+                mTxtVwRMS.setText("RMS:" +Double.toString(rmsValue));
+                mTxtVwLnRms.setText("LnRMS: "+Double.toString(Math.log(rmsValue)));
             }
         }catch(Exception e){
         e.printStackTrace();
@@ -214,11 +236,84 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
     @Override
     public void onClick(View view) {
         if(view==mBtnStart){
+            isSessionLive=true;
             mBtnStart.setEnabled(false);
             mBtnStop.setEnabled(true);
         }if(view==mBtnStop){
+            isSessionLive=false;
             mBtnStart.setEnabled(true);
             mBtnStop.setEnabled(false);
+            saveSessionData();
+        }
+    }
+
+
+
+    private void saveSessionData(){
+
+    }
+
+
+    private class ProcessSessionAsync extends AsyncTask<Void,Void,Void> {
+
+        private boolean processSuccess=false;
+
+        @Override
+        public void onPreExecute(){
+            pDialog.show();
+            isSessionLive=false;
+
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            try{
+                long timeElapsedInMilis = System.currentTimeMillis() - startTime;
+                //long timeInSeconds = timeElapsedInMilis / 1000;
+                // ArrayList<Integer> rrReadings = HRVAppInstance.getAppInstance().getRR_READINGS();
+                ArrayList<Integer> rrReadings = new ArrayList<>();
+                rrReadings.clear();
+                rrReadings.addAll(HRVAppInstance.getAppInstance().getRR_READINGS());
+                String rrDump="";
+                long sum = 0;
+                for (int d : rrReadings) {
+                    sum += 1 / d;
+                    rrDump=rrDump+"-"+Integer.toString(d);
+                }
+
+                // rrReadings.s
+                // long heartRateMeasured = (long) sum / (rrReadings.size());
+                long heartRateMeasured = (sum/(rrReadings.size()*1000))*60;
+                Double sDNN = mathHelper.computeSDNN(rrReadings);
+                Double rmsValue = mathHelper.computeRMS(rrReadings);
+                Double lnRMS =Math.log(rmsValue);
+                SessionTemplate currentSession = new SessionTemplate();
+                currentSession.setLnRMS(lnRMS);
+                currentSession.setSdNN(sDNN);
+                currentSession.setRms(rmsValue);
+                currentSession.setRrValuesDump(rrDump);
+                currentSession.setStartTime(startTime);;
+                currentSession.setTimeElapsed(System.currentTimeMillis()-startTime);
+                currentSession.save();
+
+
+                processSuccess=true;
+            }catch (Exception e){
+                processSuccess=false;
+            }
+
+            return null;
+        }
+
+        @Override
+        public void onPostExecute(Void v){
+            if(processSuccess){
+                isSessionLive=false;
+                pDialog.dismiss();
+                Toast.makeText(DataLinkActivity.this, "Session saved successfully", Toast.LENGTH_SHORT).show();
+            }else{
+
+            }
         }
     }
 }

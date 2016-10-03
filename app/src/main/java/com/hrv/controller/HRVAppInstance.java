@@ -3,13 +3,16 @@ package com.hrv.controller;
 import android.app.Application;
 import android.bluetooth.BluetoothDevice;
 
+import com.orm.SugarApp;
+import com.orm.SugarContext;
+
 import java.util.ArrayList;
 
 /**
  * Created by manishautomatic on 26/09/16.
  */
 
-public class HRVAppInstance extends Application {
+public class HRVAppInstance extends SugarApp {
 
 
     public static HRVAppInstance instance;
@@ -43,7 +46,10 @@ public class HRVAppInstance extends Application {
     }
 
 
-
+    @Override
+    public void onTerminate() {
+        SugarContext.terminate();
+    }
 
 
 }
