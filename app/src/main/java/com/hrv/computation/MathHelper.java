@@ -18,25 +18,27 @@ public class MathHelper {
         double average =0;
         double sum=0;
         for(int currentReading :temp){
-            sum=sum+(double)currentReading/1000;
+            sum=sum+(double)currentReading;
         }
         // evaluate the ke arithmetic mean of the available sample.
         average = sum/temp.size();
         // now we compute the deviations of the samples from the mean
-        ArrayList<Double> sampleDeviations = new ArrayList<>();
-        sampleDeviations.clear();
+        ArrayList<Double> deviations = new ArrayList<>();
+        deviations.clear();
         for(int currentSample :temp){
-            sampleDeviations.add((((double)currentSample/1000)-average)*((((double)currentSample/1000)-average)));
+            deviations.add((((double)currentSample)-average)*((((double)currentSample)-average)));
         }
 
         // now we compute the sum of the variance..
 
         double varianceSum=0;
-        for(double currentVariance :sampleDeviations){
+        for(double currentVariance :deviations){
             varianceSum= varianceSum+currentVariance;
         }
 
-        double computedStandardDeviation = Math.sqrt(varianceSum);
+        double meanVariance = varianceSum/deviations.size();
+
+        double computedStandardDeviation = Math.sqrt(meanVariance);
         return computedStandardDeviation;
 
     }
@@ -47,20 +49,21 @@ public class MathHelper {
         temp.clear();;
         temp.addAll(rrSamples);
         //compute the squares of the values in the sample space.
-        ArrayList<Double>squaredSampleSpace = new ArrayList<>();
-        squaredSampleSpace.clear();;
-            for(int index=0;index<temp.size();index++){
-                double currentValue = (double)temp.get(index)/1000;
-                squaredSampleSpace.add(currentValue*currentValue);
-                //temp.set(index,(((double)temp.get(index))*temp.get(index)));
+        ArrayList<Double>successiveDiffSquared = new ArrayList<>();
+        successiveDiffSquared.clear();;
+            for(int index=1;index<temp.size();index++){
+                double currentDifference = (double)(temp.get(index)-temp.get(index-1));
+                successiveDiffSquared.add(Math.pow(currentDifference,2));
             }
-        // compute the mean of the squared values..
+
+
+        // compute the mean of the squared differences ..
         double squaredMean = 0;
         double sum=0;
-            for(double currentSample : squaredSampleSpace){
+            for(double currentSample : successiveDiffSquared){
                 sum=sum+currentSample;
             }
-        squaredMean = sum/squaredSampleSpace.size();
+        squaredMean = sum/successiveDiffSquared.size();
         double rmsValue = Math.sqrt(squaredMean);
         return rmsValue;
 

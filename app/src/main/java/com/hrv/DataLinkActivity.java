@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.provider.ContactsContract;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.View;
@@ -28,6 +29,7 @@ import com.hrv.controller.BluetoothLeService;
 import com.hrv.controller.HRVAppInstance;
 import com.hrv.models.SessionTemplate;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +38,7 @@ import java.util.UUID;
  * Created by manishautomatic on 26/09/16.
  */
 
-public class DataLinkActivity extends Activity  implements View.OnClickListener{
+public class DataLinkActivity extends AppCompatActivity implements View.OnClickListener{
 
 
     private BluetoothDevice currentBleDevice;
@@ -119,7 +121,7 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
                                +"R.R VALUE: "+Integer.toString(rrValue) );
 
         if(isSessionLive){
-            startTime=System.currentTimeMillis();
+           // startTime=System.currentTimeMillis();
             computeHRfromRR();
         }
     }
@@ -128,7 +130,7 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
     private void computeHRfromRR(){
 
         try{
-            if(startTime!=0) {
+            if(isSessionLive) {
                 long timeElapsedInMilis = System.currentTimeMillis() - startTime;
                 //long timeInSeconds = timeElapsedInMilis / 1000;
                 // ArrayList<Integer> rrReadings = HRVAppInstance.getAppInstance().getRR_READINGS();
@@ -138,16 +140,18 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
                 long sum = 0;
                 for (int d : rrReadings)
                     sum += 1/d;
-                // rrReadings.s
-               // long heartRateMeasured = (long) sum / (rrReadings.size());
                 long heartRateMeasured = (sum/(rrReadings.size()*1000))*60;
-
-                mtxtVwComputedRR.setText(
-                                    "SDNN: "
-                                    +Double.toString(mathHelper.computeSDNN(rrReadings)));
+                Double SDNN = mathHelper.computeSDNN(rrReadings);
                 Double rmsValue = mathHelper.computeRMS(rrReadings);
-                mTxtVwRMS.setText("RMS:" +Double.toString(rmsValue));
-                mTxtVwLnRms.setText("LnRMS: "+Double.toString(Math.log(rmsValue)));
+                Double lnRMSSD = Math.log(rmsValue);
+                DecimalFormat df = new DecimalFormat("#.##");
+                String strSDNN = df.format(SDNN);
+                String strRMSSD = df.format(rmsValue);
+                String strLnRMSSD = df.format(lnRMSSD);
+
+                mtxtVwComputedRR.setText("SDNN:  ->  "+strSDNN);
+                mTxtVwRMS.setText("RMS:  ->  "+strRMSSD);
+                mTxtVwLnRms.setText("LnRMS:  ->  "+strLnRMSSD);
             }
         }catch(Exception e){
         e.printStackTrace();
@@ -237,6 +241,7 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
     public void onClick(View view) {
         if(view==mBtnStart){
             isSessionLive=true;
+            startTime=System.currentTimeMillis();
             mBtnStart.setEnabled(false);
             mBtnStop.setEnabled(true);
         }if(view==mBtnStop){
@@ -250,6 +255,7 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
 
 
     private void saveSessionData(){
+    new ProcessSessionAsync().execute();
 
     }
 
@@ -308,7 +314,7 @@ public class DataLinkActivity extends Activity  implements View.OnClickListener{
         @Override
         public void onPostExecute(Void v){
             if(processSuccess){
-                isSessionLive=false;
+               // isSessionLive=false;
                 pDialog.dismiss();
                 Toast.makeText(DataLinkActivity.this, "Session saved successfully", Toast.LENGTH_SHORT).show();
             }else{
