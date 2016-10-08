@@ -13,8 +13,17 @@ public class SessionTemplate extends SugarRecord {
     private Double sdNN=0.0;
     private Double rms=0.0;
     private Double lnRMS=0.0;
+    private Double hrvValue=0.0;
     private String rrValuesDump="";
 
+
+    public Double getHrvValue() {
+        return hrvValue;
+    }
+
+    public void setHrvValue(Double hrvValue) {
+        this.hrvValue = hrvValue;
+    }
 
     public long getTimeElapsed() {
         return timeElapsed;

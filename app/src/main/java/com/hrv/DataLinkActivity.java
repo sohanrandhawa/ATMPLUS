@@ -30,8 +30,11 @@ import com.hrv.controller.HRVAppInstance;
 import com.hrv.models.SessionTemplate;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 
 /**
@@ -55,7 +58,9 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private TextView mTxtVwRMS;
     private TextView mTxtVwLnRms;
     private ProgressDialog pDialog;
+    private TextView mTxtVwHRV;
     private boolean isSessionLive=false;
+    private TextView mTxtVwElapsedTime;
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -69,6 +74,8 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         mBtnStart=(Button)findViewById(R.id.btnStart);
         mBtnStop=(Button)findViewById(R.id.btnStop);
         mTxtVwRMS=(TextView)findViewById(R.id.txtvwRMS);
+        mTxtVwHRV=(TextView)findViewById(R.id.txtvwHRV);
+        mTxtVwElapsedTime=(TextView)findViewById(R.id.txtvwElapsedTime);
         mTxtVwLnRms=(TextView)findViewById(R.id.txtvwLnRMS);
         pDialog = new ProgressDialog(DataLinkActivity.this);
         pDialog.setTitle("HRV-DEMO");
@@ -127,10 +134,10 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     }
 
 
-    private void computeHRfromRR(){
+    private void computeHRfromRR() {
 
-        try{
-            if(isSessionLive) {
+        try {
+            if (isSessionLive) {
                 long timeElapsedInMilis = System.currentTimeMillis() - startTime;
                 //long timeInSeconds = timeElapsedInMilis / 1000;
                 // ArrayList<Integer> rrReadings = HRVAppInstance.getAppInstance().getRR_READINGS();
@@ -139,29 +146,27 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 rrReadings.addAll(HRVAppInstance.getAppInstance().getRR_READINGS());
                 long sum = 0;
                 for (int d : rrReadings)
-                    sum += 1/d;
-                long heartRateMeasured = (sum/(rrReadings.size()*1000))*60;
+                    sum += 1 / d;
+                long heartRateMeasured = (sum / (rrReadings.size() * 1000)) * 60;
                 Double SDNN = mathHelper.computeSDNN(rrReadings);
                 Double rmsValue = mathHelper.computeRMS(rrReadings);
                 Double lnRMSSD = Math.log(rmsValue);
+                Double hrv = mathHelper.computeHRV(lnRMSSD);
                 DecimalFormat df = new DecimalFormat("#.##");
                 String strSDNN = df.format(SDNN);
                 String strRMSSD = df.format(rmsValue);
                 String strLnRMSSD = df.format(lnRMSSD);
+                String strHRV = df.format(hrv);
 
-                mtxtVwComputedRR.setText("SDNN:  ->  "+strSDNN);
-                mTxtVwRMS.setText("RMS:  ->  "+strRMSSD);
-                mTxtVwLnRms.setText("LnRMS:  ->  "+strLnRMSSD);
+                mtxtVwComputedRR.setText("SDNN:  ->  " + strSDNN);
+                mTxtVwRMS.setText("RMS:  ->  " + strRMSSD);
+                mTxtVwLnRms.setText("LnRMS:  ->  " + strLnRMSSD);
+                mTxtVwHRV.setText("HRV: ->" + strHRV);
+                mTxtVwElapsedTime.setText("Session duration: "+millisToMinutes(timeElapsedInMilis));
             }
-        }catch(Exception e){
-        e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-
-
-
-
-
     }
 
 
@@ -202,6 +207,15 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         }
     };
 
+
+    private String millisToMinutes(long millis){
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+        df.setTimeZone(tz);
+        String time = df.format(new Date(millis));
+       return time;
+
+    }
 
 
     @Override

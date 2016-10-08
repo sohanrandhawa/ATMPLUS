@@ -17,6 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by manishautomatic on 03/10/16.
@@ -65,6 +66,7 @@ public class SessionsListAdapter extends BaseAdapter {
             holder.mTxtVwSessionSDNN=(TextView)view.findViewById(R.id.txtvwSessionSDNN);
             holder.mTxtVwSessionRMS=(TextView)view.findViewById(R.id.txtvwSessionRMSSD);
             holder.mTxtVwSessionLnRMS=(TextView)view.findViewById(R.id.txtvwSessionLnRSDD);
+            holder.mTxtVwSessionHRV=(TextView)view.findViewById(R.id.txtvwSessionHRV);
             view.setTag(holder);
         }else{
             holder =(ViewHolder)view.getTag();
@@ -86,18 +88,27 @@ public class SessionsListAdapter extends BaseAdapter {
         String strLnRMSSD = df.format(LnRMS);
 
         holder.mTxtVwSessionDate.setText("Date: "+sessionDate);
-        double sessionDurationInMins = ((double)sessionDuration/1000)/60;
-        String strDurationMinutes = df.format(sessionDurationInMins);
-        holder.mTxtVwSessionDuration.setText("Duration ( mins): "+strDurationMinutes);
+
+
+        holder.mTxtVwSessionDuration.setText("Duration: "+millisToMinutes(data.get(i).getTimeElapsed()));
         holder.mTxtVwSessionSDNN.setText("SDNN: "+strSDNN);
         holder.mTxtVwSessionRMS.setText("RMSSD: "+strRMSSD);
         holder.mTxtVwSessionLnRMS.setText("LnRMSSD: "+strLnRMSSD);
+        holder.mTxtVwSessionHRV.setText("HRV: "+df.format(data.get(i).getHrvValue()));
 
 
         return view;
     }
 
 
+    private String millisToMinutes(long millis){
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+        df.setTimeZone(tz);
+        String time = df.format(new Date(millis));
+        return time;
+
+    }
 
     private class ViewHolder{
         private TextView mTxtVwSessionDate;
@@ -105,6 +116,7 @@ public class SessionsListAdapter extends BaseAdapter {
         private TextView mTxtVwSessionSDNN;
         private TextView mTxtVwSessionRMS;
         private TextView mTxtVwSessionLnRMS;
+        private TextView mTxtVwSessionHRV;
 
     }
 }

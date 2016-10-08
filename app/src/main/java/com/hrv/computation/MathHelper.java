@@ -69,4 +69,9 @@ public class MathHelper {
 
     }
 
+
+
+    public synchronized double computeHRV(double lnRMSSD){
+        return (double)((100*lnRMSSD)/6.5);
+    }
 }

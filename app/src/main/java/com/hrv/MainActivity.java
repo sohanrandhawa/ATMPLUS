@@ -361,8 +361,8 @@ List<ScanFilter> filterList = new  ArrayList<ScanFilter>();
                 super.onScanFailed(errorCode);
             }
         };
-        bluetoothLeScanner.startScan(filterList,null,sCallback);
-        //bluetoothLeScanner.startScan(sCallback);
+        //bluetoothLeScanner.startScan(filterList,null,sCallback);
+        bluetoothLeScanner.startScan(sCallback);
     }
 
 
