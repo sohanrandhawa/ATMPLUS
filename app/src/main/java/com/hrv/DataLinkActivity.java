@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -28,7 +29,12 @@ import com.hrv.computation.MathHelper;
 import com.hrv.controller.BluetoothLeService;
 import com.hrv.controller.HRVAppInstance;
 import com.hrv.models.SessionTemplate;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -61,6 +67,11 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private TextView mTxtVwHRV;
     private boolean isSessionLive=false;
     private TextView mTxtVwElapsedTime;
+    private TextView mTxtVwHeartRate;
+    private GraphView mGraphView;
+    private int lastRRValue=0;
+    LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>();
+    private ArrayList<Integer> rrSampleForGraph = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -76,6 +87,8 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         mTxtVwRMS=(TextView)findViewById(R.id.txtvwRMS);
         mTxtVwHRV=(TextView)findViewById(R.id.txtvwHRV);
         mTxtVwElapsedTime=(TextView)findViewById(R.id.txtvwElapsedTime);
+        mTxtVwHeartRate=(TextView)findViewById(R.id.txtvwHeartRate);
+        mGraphView = (GraphView) findViewById(R.id.graph);
         mTxtVwLnRms=(TextView)findViewById(R.id.txtvwLnRMS);
         pDialog = new ProgressDialog(DataLinkActivity.this);
         pDialog.setTitle("HRV-DEMO");
@@ -86,8 +99,53 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         mBtnStop.setOnClickListener(this);
         bindService(gattServiceIntent, serviceConnection, BIND_AUTO_CREATE);
 
+
+
+        initGraph();
+
     }
 
+
+    private void initGraph(){
+        mGraphView.getViewport().setXAxisBoundsManual(true);
+        mGraphView.getViewport().setYAxisBoundsManual(true);
+
+
+        //ye do lines mene likhi hai edit kar dena
+        //mGraphView.getViewport().setScalable(true);
+        //mGraphView.getViewport().setScrollableY(true);
+        // ends here
+
+       // mGraphView.getViewport().setMinX(100);
+        //mGraphView.getViewport().setMinY(60);
+        //mGraphView.getViewport().setS
+
+        //mGraphView.getViewport().setMaxY(80);
+      //  mGraphView.getGridLabelRenderer().setLabelVerticalWidth(10);
+        //series.setDrawDataPoints(true);
+
+
+        mGraphView.getViewport().setMinX(10000);
+        mGraphView.getViewport().setMaxX(150000);
+        mGraphView.getViewport().setMinY(0.1);
+        mGraphView.getViewport().setMaxY(120);
+        mGraphView.getGridLabelRenderer().setLabelVerticalWidth(100);
+        mGraphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
+        mGraphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
+        //mGraphView.getViewport().
+
+
+
+       // series.setBackgroundColor(Color.RED);
+        series.setBackgroundColor(Color.argb(40,255,0,0));
+        series.setColor(Color.RED);
+        series.setDrawBackground(true);
+        mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
+        //mGraphView.get
+        //mGraphView.getViewport().setMinX();
+        mGraphView.addSeries(series);
+
+    }
 
 
     private final BroadcastReceiver gattUpdateReceiver = new BroadcastReceiver() {
@@ -126,7 +184,10 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private void updateDataonUI(int hRate, int rrValue){
         mTxtVwReading.setText("HEART-RATE: "+Integer.toString(hRate)+" \n"
                                +"R.R VALUE: "+Integer.toString(rrValue) );
-
+                lastRRValue=lastRRValue+rrValue;
+                series.appendData(new DataPoint(lastRRValue,hRate),true,100);
+        mGraphView.removeSeries(series);
+        mGraphView.addSeries(series);
         if(isSessionLive){
            // startTime=System.currentTimeMillis();
             computeHRfromRR();
@@ -145,9 +206,13 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 rrReadings.clear();
                 rrReadings.addAll(HRVAppInstance.getAppInstance().getRR_READINGS());
                 long sum = 0;
-                for (int d : rrReadings)
-                    sum += 1 / d;
-                long heartRateMeasured = (sum / (rrReadings.size() * 1000)) * 60;
+                for (Integer d : rrReadings)
+                    sum +=  d;
+                double meanRR = (double)sum/rrReadings.size();
+                double meanRR_secs = meanRR/1000;
+                double meanHR = (double) 60/meanRR_secs;
+
+              //  Double heartRateMeasured = (double) 60/((sum / (rrReadings.size()) / 1000));
                 Double SDNN = mathHelper.computeSDNN(rrReadings);
                 Double rmsValue = mathHelper.computeRMS(rrReadings);
                 Double lnRMSSD = Math.log(rmsValue);
@@ -157,12 +222,14 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 String strRMSSD = df.format(rmsValue);
                 String strLnRMSSD = df.format(lnRMSSD);
                 String strHRV = df.format(hrv);
+                String strHRate = df.format(meanHR);
 
                 mtxtVwComputedRR.setText("SDNN:  ->  " + strSDNN);
                 mTxtVwRMS.setText("RMS:  ->  " + strRMSSD);
                 mTxtVwLnRms.setText("LnRMS:  ->  " + strLnRMSSD);
                 mTxtVwHRV.setText("HRV: ->" + strHRV);
                 mTxtVwElapsedTime.setText("Session duration: "+millisToMinutes(timeElapsedInMilis));
+                mTxtVwHeartRate.setText("Heart Rate:  "+strHRate);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -171,20 +238,29 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
 
     private void initHeartRateReading(){
+        try{
+            List<BluetoothGattService> servicesList = bluetoothService.getSupportedGattServices();
+            if(servicesList!=null){
+                for(BluetoothGattService currentService: servicesList){
+                    if(currentService.getUuid().equals(HEART_RATE_SERVICE_UUID)){
+                        heartRateService=currentService;
+                        try{
+                            heartRateCharacteristic=currentService
+                                    .getCharacteristics().get(0);
 
-        List<BluetoothGattService> servicesList = bluetoothService.getSupportedGattServices();
-        if(servicesList!=null){
-            for(BluetoothGattService currentService: servicesList){
-                if(currentService.getUuid().equals(HEART_RATE_SERVICE_UUID)){
-                    heartRateService=currentService;
-                    heartRateCharacteristic=currentService
-                                            .getCharacteristics().get(0);
+                            // configure the service to listen to this characteristic
+                            bluetoothService.enableCharacteristicsUpdate(heartRateCharacteristic);
+                        }catch (Exception e){
 
-                    // configure the service to listen to this characteristic
-                    bluetoothService.enableCharacteristicsUpdate(heartRateCharacteristic);
+                        }
+
+                    }
                 }
             }
+        }catch(Exception e){
+
         }
+
 
     }
 
@@ -297,22 +373,30 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 String rrDump="";
                 long sum = 0;
                 for (int d : rrReadings) {
-                    sum += 1 / d;
+                    sum += d;
                     rrDump=rrDump+"-"+Integer.toString(d);
                 }
 
+
+                double meanRR = (double)sum/rrReadings.size();
+                double meanRR_secs = meanRR/1000;
+                double meanHR = (double) 60/meanRR_secs;
+
                 // rrReadings.s
                 // long heartRateMeasured = (long) sum / (rrReadings.size());
-                long heartRateMeasured = (sum/(rrReadings.size()*1000))*60;
+
                 Double sDNN = mathHelper.computeSDNN(rrReadings);
                 Double rmsValue = mathHelper.computeRMS(rrReadings);
                 Double lnRMS =Math.log(rmsValue);
+                Double hrv = mathHelper.computeHRV(lnRMS);
                 SessionTemplate currentSession = new SessionTemplate();
                 currentSession.setLnRMS(lnRMS);
                 currentSession.setSdNN(sDNN);
                 currentSession.setRms(rmsValue);
                 currentSession.setRrValuesDump(rrDump);
                 currentSession.setStartTime(startTime);;
+                currentSession.setAvgHeartRate(meanHR);
+                currentSession.setHrvValue(hrv);
                 currentSession.setTimeElapsed(System.currentTimeMillis()-startTime);
                 currentSession.save();
 
@@ -332,7 +416,8 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 pDialog.dismiss();
                 Toast.makeText(DataLinkActivity.this, "Session saved successfully", Toast.LENGTH_SHORT).show();
             }else{
-
+                pDialog.dismiss();
+                Toast.makeText(DataLinkActivity.this, "Could not save session", Toast.LENGTH_SHORT).show();
             }
         }
     }

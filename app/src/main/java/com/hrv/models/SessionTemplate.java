@@ -15,10 +15,20 @@ public class SessionTemplate extends SugarRecord {
     private Double lnRMS=0.0;
     private Double hrvValue=0.0;
     private String rrValuesDump="";
+    private Double avgHeartRate=0.0;
 
 
     public Double getHrvValue() {
         return hrvValue;
+    }
+
+
+    public Double getAvgHeartRate() {
+        return avgHeartRate;
+    }
+
+    public void setAvgHeartRate(Double avgHeartRate) {
+        this.avgHeartRate = avgHeartRate;
     }
 
     public void setHrvValue(Double hrvValue) {

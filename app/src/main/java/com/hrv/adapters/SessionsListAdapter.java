@@ -67,6 +67,7 @@ public class SessionsListAdapter extends BaseAdapter {
             holder.mTxtVwSessionRMS=(TextView)view.findViewById(R.id.txtvwSessionRMSSD);
             holder.mTxtVwSessionLnRMS=(TextView)view.findViewById(R.id.txtvwSessionLnRSDD);
             holder.mTxtVwSessionHRV=(TextView)view.findViewById(R.id.txtvwSessionHRV);
+            holder.mTxtVwSessionHR=(TextView)view.findViewById(R.id.txtvwMeanHR);
             view.setTag(holder);
         }else{
             holder =(ViewHolder)view.getTag();
@@ -75,8 +76,10 @@ public class SessionsListAdapter extends BaseAdapter {
         Double SDNN= data.get(i).getSdNN();
         Double RMSSD = data.get(i).getRms();
         Double LnRMS = data.get(i).getLnRMS();
+        Double meanHeartRate = data.get(i).getAvgHeartRate();
         Long sessionDuration = data.get(i).getTimeElapsed();
         Long sessionStartDate = data.get(i).getStartTime();
+
 
         Date date = new Date(sessionStartDate);
         SimpleDateFormat dateformat = new SimpleDateFormat("MMM dd, yyyy HH:mm:ss a");
@@ -86,10 +89,10 @@ public class SessionsListAdapter extends BaseAdapter {
         String strSDNN = df.format(SDNN);
         String strRMSSD = df.format(RMSSD);
         String strLnRMSSD = df.format(LnRMS);
-
+        String strHeartRate = df.format(meanHeartRate);
         holder.mTxtVwSessionDate.setText("Date: "+sessionDate);
 
-
+        holder.mTxtVwSessionHR.setText("Mean Heart Rate: "+strHeartRate);
         holder.mTxtVwSessionDuration.setText("Duration: "+millisToMinutes(data.get(i).getTimeElapsed()));
         holder.mTxtVwSessionSDNN.setText("SDNN: "+strSDNN);
         holder.mTxtVwSessionRMS.setText("RMSSD: "+strRMSSD);
@@ -117,6 +120,7 @@ public class SessionsListAdapter extends BaseAdapter {
         private TextView mTxtVwSessionRMS;
         private TextView mTxtVwSessionLnRMS;
         private TextView mTxtVwSessionHRV;
+        private TextView mTxtVwSessionHR;
 
     }
 }
