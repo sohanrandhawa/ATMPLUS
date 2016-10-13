@@ -25,6 +25,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.LineChart;
 import com.hrv.computation.MathHelper;
 import com.hrv.controller.BluetoothLeService;
 import com.hrv.controller.HRVAppInstance;
@@ -38,6 +39,7 @@ import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -72,6 +74,8 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private int lastRRValue=0;
     LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>();
     private ArrayList<Integer> rrSampleForGraph = new ArrayList<>();
+    private ArrayList<Integer> hrSamplesForGraph = new ArrayList<>();
+    private LineChart mLineChart;
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -90,6 +94,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         mTxtVwHeartRate=(TextView)findViewById(R.id.txtvwHeartRate);
         mGraphView = (GraphView) findViewById(R.id.graph);
         mTxtVwLnRms=(TextView)findViewById(R.id.txtvwLnRMS);
+       // mLineChart=(LineChart)findViewById(R.id.mpGraph);
         pDialog = new ProgressDialog(DataLinkActivity.this);
         pDialog.setTitle("HRV-DEMO");
         pDialog.setMessage("processing session data, please wait...");
@@ -107,44 +112,30 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
 
     private void initGraph(){
+
+        //clear existing samples..
+        rrSampleForGraph.clear();
+        hrSamplesForGraph.clear();
         mGraphView.getViewport().setXAxisBoundsManual(true);
         mGraphView.getViewport().setYAxisBoundsManual(true);
-
-
-        //ye do lines mene likhi hai edit kar dena
-        //mGraphView.getViewport().setScalable(true);
-        //mGraphView.getViewport().setScrollableY(true);
-        // ends here
-
-       // mGraphView.getViewport().setMinX(100);
-        //mGraphView.getViewport().setMinY(60);
-        //mGraphView.getViewport().setS
-
-        //mGraphView.getViewport().setMaxY(80);
-      //  mGraphView.getGridLabelRenderer().setLabelVerticalWidth(10);
-        //series.setDrawDataPoints(true);
-
-
-        mGraphView.getViewport().setMinX(10000);
-        mGraphView.getViewport().setMaxX(150000);
-        mGraphView.getViewport().setMinY(0.1);
-        mGraphView.getViewport().setMaxY(120);
-        mGraphView.getGridLabelRenderer().setLabelVerticalWidth(100);
+        mGraphView.getViewport().setMinX(500);
+        mGraphView.getViewport().setMaxX(75000);
+        mGraphView.getViewport().setMinY((double)40);
+        mGraphView.getViewport().setMaxY((double)90);
+        mGraphView.getViewport().setDrawBorder(true);
+        mGraphView.getGridLabelRenderer().setLabelVerticalWidth(10);
+        mGraphView.getGridLabelRenderer().setNumHorizontalLabels(10);
         mGraphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
-        mGraphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
-        //mGraphView.getViewport().
-
-
-
-       // series.setBackgroundColor(Color.RED);
+        //mGraphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
         series.setBackgroundColor(Color.argb(40,255,0,0));
         series.setColor(Color.RED);
         series.setDrawBackground(true);
-        mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
-        //mGraphView.get
-        //mGraphView.getViewport().setMinX();
-        mGraphView.addSeries(series);
+        //mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
+        mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
+        mGraphView.getGridLabelRenderer().setLabelVerticalWidth(20);
+        //mGraphView.getGridLabelRenderer().set
 
+        mGraphView.addSeries(series);
     }
 
 
@@ -185,13 +176,66 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         mTxtVwReading.setText("HEART-RATE: "+Integer.toString(hRate)+" \n"
                                +"R.R VALUE: "+Integer.toString(rrValue) );
                 lastRRValue=lastRRValue+rrValue;
-                series.appendData(new DataPoint(lastRRValue,hRate),true,100);
+               // prepareSamples(hRate,rrValue);
+        series.appendData(new DataPoint((double)lastRRValue,(double)hRate),true,100);
+
         mGraphView.removeSeries(series);
+
+
+        if(hRate>100 ){
+            mGraphView.getViewport().setMinY((double)(hRate-75));
+            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+            mGraphView.getViewport().setMaxY((double)(hRate+50));
+        }
+        /*
+        if(hRate>70 && hRate<=90){
+            mGraphView.getViewport().setMinY((double)(hRate-10));
+            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+            mGraphView.getViewport().setMaxY((double)(hRate+10));
+        }
+        */
+        if(hRate>60 && hRate<=100){
+            mGraphView.getViewport().setMinY((double)(hRate-40));
+            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+            mGraphView.getViewport().setMaxY((double)(hRate+20));
+        }if(hRate<=60){
+            mGraphView.getViewport().setMinY((double)(hRate-15));
+            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+            mGraphView.getViewport().setMaxY((double)(hRate+35));
+        }
+
+
+          //  mGraphView.getViewport().setMinY((double)40);
+            //mGraphView.getViewport().setMaxY(190);
+        mGraphView.getViewport().setScalableY(true);
+      //  mGraphView.getViewport().setMinY((double)(hRate-20));
+        //mGraphView.getViewport().setMaxY((double)(hRate+20));
+       // mGraphView.getViewport().setMinX((double)(lastRRValue-500));
+        //mGraphView.getViewport().setMaxX((double)(lastRRValue+1500));
+
+
         mGraphView.addSeries(series);
+        //DataPoint d = new DataPoint();
         if(isSessionLive){
            // startTime=System.currentTimeMillis();
             computeHRfromRR();
         }
+    }
+
+
+    private void prepareSamples(int hr, int rr){
+            if(rrSampleForGraph.size()<=15){
+                rrSampleForGraph.add(rr);
+                hrSamplesForGraph.add(hr);
+            }else{
+                rrSampleForGraph.remove(0);
+                hrSamplesForGraph.remove(0);
+                rrSampleForGraph.add(rr);
+                hrSamplesForGraph.add(hr);
+            }
+        // now load these samples into the Graph Series...
+
+
     }
 
 
