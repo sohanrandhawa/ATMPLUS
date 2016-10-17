@@ -118,8 +118,8 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         hrSamplesForGraph.clear();
         mGraphView.getViewport().setXAxisBoundsManual(true);
         mGraphView.getViewport().setYAxisBoundsManual(true);
-        mGraphView.getViewport().setMinX(500);
-        mGraphView.getViewport().setMaxX(75000);
+        mGraphView.getViewport().setMinX(5000);
+        mGraphView.getViewport().setMaxX(100000);
         mGraphView.getViewport().setMinY((double)40);
         mGraphView.getViewport().setMaxY((double)90);
         mGraphView.getViewport().setDrawBorder(true);
@@ -127,8 +127,9 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         mGraphView.getGridLabelRenderer().setNumHorizontalLabels(10);
         mGraphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
         //mGraphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
-        series.setBackgroundColor(Color.argb(40,255,0,0));
-        series.setColor(Color.RED);
+        mGraphView.getGridLabelRenderer().setNumHorizontalLabels(5);
+        series.setBackgroundColor(Color.argb(20,247,54,141));
+        series.setColor(Color.argb(255,217,79,20));
         series.setDrawBackground(true);
         //mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
         mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
@@ -173,11 +174,13 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
 
     private void updateDataonUI(int hRate, int rrValue){
-        mTxtVwReading.setText("HEART-RATE: "+Integer.toString(hRate)+" \n"
+        mTxtVwReading.setText("HEART-RATE: "+Integer.toString(hRate)+"     "
                                +"R.R VALUE: "+Integer.toString(rrValue) );
                 lastRRValue=lastRRValue+rrValue;
                // prepareSamples(hRate,rrValue);
-        series.appendData(new DataPoint((double)lastRRValue,(double)hRate),true,100);
+        //calculate heart rate value form the current RR value sample.
+        double currentHR = ((double)1/rrValue)*60*1000;
+        series.appendData(new DataPoint((double)lastRRValue,currentHR),true,100);
 
         mGraphView.removeSeries(series);
 
