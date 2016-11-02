@@ -81,6 +81,8 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private ArrayList<Integer> rrSampleForGraph = new ArrayList<>();
     private ArrayList<Integer> hrSamplesForGraph = new ArrayList<>();
     private LineChart mLineChart;
+    // object representing the current ongoing session.
+    private SessionTemplate currentSession ;
 
     @Override
     public void onCreate(Bundle savedInstance){
@@ -125,10 +127,10 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         hrSamplesForGraph.clear();
         mGraphView.getViewport().setXAxisBoundsManual(true);
         mGraphView.getViewport().setYAxisBoundsManual(true);
-        mGraphView.getViewport().setMinX(lastRRValue);
+        mGraphView.getViewport().setMinX(5000);
         mGraphView.getViewport().setMaxX(100000);
         mGraphView.getViewport().setMinY((double)40);
-        mGraphView.getViewport().setMaxY((double)90);
+        mGraphView.getViewport().setMaxY((double) 90);
         mGraphView.getViewport().setDrawBorder(true);
         mGraphView.getGridLabelRenderer().setNumHorizontalLabels(10);
        // mGraphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
@@ -140,7 +142,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         series.setColor(Color.argb(255,217,79,20));
         series.setDrawBackground(true);
         series.setThickness(8);
-        series.appendData(new DataPoint(0,0),false,100);
+        //series.appendData(new DataPoint(0,0),false,100);
         mGraphView.addSeries(series);
     }
 
@@ -179,6 +181,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
 
     private void updateDataonUI(int hRate, int rrValue){
+        if(rrValue==0)return;// putting a check here to prevent infite value for Y axis of the chart
         mTxtVwReading.setText("HEART-RATE: "+Integer.toString(hRate)+"     "
                                +"R.R VALUE: "+Integer.toString(rrValue) );
                 lastRRValue=lastRRValue+rrValue;
@@ -186,11 +189,10 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         //calculate heart rate value form the current RR value sample.
         double currentHR = ((double)1/rrValue)*60*1000;
 
-        series.appendData(new DataPoint((double)lastRRValue,currentHR),true,100);
-        mTxtVwReading.setText(mTxtVwReading.getText().toString()+"\n "
-                            +Double.toString(lastRRValue)+" "
-                            +Double.toString(currentHR));
-
+        mTxtVwReading.setText(mTxtVwReading.getText().toString() + "\n "
+                + Double.toString(lastRRValue) + " "
+                + Double.toString(currentHR));
+        series.appendData(new DataPoint(lastRRValue,currentHR ), true, 5000);
         mGraphView.removeSeries(series);
       //  mGraphView.getViewport().setMinX(series.getHighestValueX());
        // mGraphView.getViewport().setMaxX(series.getHighestValueX()+100000);
@@ -205,17 +207,36 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         if(hRate>60 && hRate<=100){
             mGraphView.getViewport().setMinY((double)(hRate-40));
             //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-            mGraphView.getViewport().setMaxY((double)(hRate+20));
+            mGraphView.getViewport().setMaxY((double)(hRate+40));
         }if(hRate<=60){
-            mGraphView.getViewport().setMinY((double)(hRate-15));
+            mGraphView.getViewport().setMinY((double) (hRate - 15));
             //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-            mGraphView.getViewport().setMaxY((double)(hRate+35));
+            mGraphView.getViewport().setMaxY((double) (hRate + 35));
         }
+
+        /*
+
+        if(lastRRValue<50000){
+            mGraphView.getViewport().setMinX(5000);
+            mGraphView.getViewport().setMaxX(100000);
+        }if(lastRRValue>50000 && lastRRValue<500000){
+            mGraphView.getViewport().setMinX(50000);
+            mGraphView.getViewport().setMaxX(1000000);
+        }if(lastRRValue>500000 && lastRRValue<5000000){
+            mGraphView.getViewport().setMinX(500000);
+            mGraphView.getViewport().setMaxX(10000000);
+        }if(lastRRValue>5000000 && lastRRValue<50000000){
+            mGraphView.getViewport().setMinX(5000000);
+            mGraphView.getViewport().setMaxX(100000000);
+        }
+        */
             mGraphView.getViewport().setScalableY(true);
             mGraphView.addSeries(series);
-        mGraphView.scrollTo(0,0);
 
-        if(isSessionLive){
+        //mGraphView.scrollTo(0,0);
+        //mGraphView.scr
+
+        if (isSessionLive){
             computeHRfromRR();
         }
     }
@@ -239,43 +260,79 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
     private void computeHRfromRR() {
 
-        try {
-            if (isSessionLive) {
-                long timeElapsedInMilis = System.currentTimeMillis() - startTime;
-                //long timeInSeconds = timeElapsedInMilis / 1000;
-                // ArrayList<Integer> rrReadings = HRVAppInstance.getAppInstance().getRR_READINGS();
-                ArrayList<Integer> rrReadings = new ArrayList<>();
-                rrReadings.clear();
-                rrReadings.addAll(HRVAppInstance.getAppInstance().getRR_READINGS());
-                long sum = 0;
-                for (Integer d : rrReadings)
-                    sum +=  d;
-                double meanRR = (double)sum/rrReadings.size();
-                double meanRR_secs = meanRR/1000;
-                double meanHR = (double) 60/meanRR_secs;
+        runOnUiThread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (isSessionLive) {
+                                long timeElapsedInMilis = System.currentTimeMillis() - startTime;
+                                //long timeInSeconds = timeElapsedInMilis / 1000;
+                                // ArrayList<Integer> rrReadings = HRVAppInstance.getAppInstance().getRR_READINGS();
+                                ArrayList<Integer> rrReadings = new ArrayList<>();
+                                rrReadings.clear();
+                                rrReadings.addAll(HRVAppInstance.getAppInstance().getRR_READINGS());
+                                long sum = 0;
+                                for (Integer d : rrReadings)
+                                    sum +=  d;
+                                double meanRR = (double)sum/rrReadings.size();
+                                double meanRR_secs = meanRR/1000;
+                                double meanHR = (double) 60/meanRR_secs;
 
-              //  Double heartRateMeasured = (double) 60/((sum / (rrReadings.size()) / 1000));
-                Double SDNN = mathHelper.computeSDNN(rrReadings);
-                Double rmsValue = mathHelper.computeRMS(rrReadings);
-                Double lnRMSSD = Math.log(rmsValue);
-                Double hrv = mathHelper.computeHRV(lnRMSSD);
-                DecimalFormat df = new DecimalFormat("#.##");
-                String strSDNN = df.format(SDNN);
-                String strRMSSD = df.format(rmsValue);
-                String strLnRMSSD = df.format(lnRMSSD);
-                String strHRV = df.format(hrv);
-                String strHRate = df.format(meanHR);
+                                //  Double heartRateMeasured = (double) 60/((sum / (rrReadings.size()) / 1000));
+                                Double SDNN = mathHelper.computeSDNN(rrReadings);
+                                Double rmsValue = mathHelper.computeRMS(rrReadings);
+                                Double lnRMSSD = Math.log(rmsValue);
+                                Double hrv = mathHelper.computeHRV(lnRMSSD);
+                                DecimalFormat df = new DecimalFormat("#.##");
+                                String strSDNN = df.format(SDNN);
+                                String strRMSSD = df.format(rmsValue);
+                                String strLnRMSSD = df.format(lnRMSSD);
+                                String strHRV = df.format(hrv);
+                                String strHRate = df.format(meanHR);
 
-                mtxtVwComputedRR.setText("SDNN:  ->  " + strSDNN);
-                mTxtVwRMS.setText("RMS:  ->  " + strRMSSD);
-                mTxtVwLnRms.setText("LnRMS:  ->  " + strLnRMSSD);
-                mTxtVwHRV.setText("HRV: ->" + strHRV);
-                mTxtVwElapsedTime.setText("Session duration: "+millisToMinutes(timeElapsedInMilis));
-                mTxtVwHeartRate.setText("Heart Rate:  "+strHRate);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                                mtxtVwComputedRR.setText("SDNN:  ->  " + strSDNN);
+                                mTxtVwRMS.setText("RMS:  ->  " + strRMSSD);
+                                mTxtVwLnRms.setText("LnRMS:  ->  " + strLnRMSSD);
+                                mTxtVwHRV.setText("HRV: ->" + strHRV);
+                                mTxtVwElapsedTime.setText("Session duration: "+millisToMinutes(timeElapsedInMilis));
+                                mTxtVwHeartRate.setText("Heart Rate:  "+strHRate);
+
+                                // update the current session object, with the latest set of data.
+                                currentSession.setLnRMS(lnRMSSD);
+                                currentSession.setSdNN(SDNN);
+                                currentSession.setRms(rmsValue);
+                                String rrDump="";
+                                if(currentSession.getRrValuesDump().equalsIgnoreCase("")){
+                                    ArrayList<Integer> tempRRData = new ArrayList<>();
+                                    tempRRData.clear();
+                                    tempRRData.addAll(HRVAppInstance.getAppInstance().getCURRENT_RR_PACKET());
+                                    for (int d : tempRRData) {
+                                        sum += d;
+                                        rrDump=rrDump+"-"+Integer.toString(d);
+                                    }
+                                    currentSession.setRrValuesDump(rrDump);
+                                }else{
+                                    currentSession.setRrValuesDump(
+                                            currentSession.getRrValuesDump()
+                                                    +"-" +rrDump);
+                                }
+                                //  currentSession.setRrValuesDump(rrDump);
+                                currentSession.setStartTime(startTime);;
+                                currentSession.setAvgHeartRate(meanHR);
+                                currentSession.setHrvValue(hrv);
+                                currentSession.setTimeElapsed(System.currentTimeMillis() - startTime);
+                                currentSession.save();
+
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+        );
+
+
     }
 
 
@@ -376,6 +433,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 isSessionLive=true;
                 mBtnToggleSessionState.setText("STOP-SESSION");
                 mBtnToggleSessionState.setBackgroundColor(Color.RED);
+                currentSession=new SessionTemplate();// initialize a new session object
             }else{
                 confirmSessionClosure();
 
@@ -398,82 +456,12 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
 
     private void saveSessionData(){
-    new ProcessSessionAsync().execute();
+
 
     }
 
 
-    private class ProcessSessionAsync extends AsyncTask<Void,Void,Void> {
 
-        private boolean processSuccess=false;
-
-        @Override
-        public void onPreExecute(){
-            pDialog.show();
-            isSessionLive=false;
-
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try{
-                long timeElapsedInMilis = System.currentTimeMillis() - startTime;
-                //long timeInSeconds = timeElapsedInMilis / 1000;
-                // ArrayList<Integer> rrReadings = HRVAppInstance.getAppInstance().getRR_READINGS();
-                ArrayList<Integer> rrReadings = new ArrayList<>();
-                rrReadings.clear();
-                rrReadings.addAll(HRVAppInstance.getAppInstance().getRR_READINGS());
-                String rrDump="";
-                long sum = 0;
-                for (int d : rrReadings) {
-                    sum += d;
-                    rrDump=rrDump+"-"+Integer.toString(d);
-                }
-
-
-                double meanRR = (double)sum/rrReadings.size();
-                double meanRR_secs = meanRR/1000;
-                double meanHR = (double) 60/meanRR_secs;
-
-                // rrReadings.s
-                // long heartRateMeasured = (long) sum / (rrReadings.size());
-
-                Double sDNN = mathHelper.computeSDNN(rrReadings);
-                Double rmsValue = mathHelper.computeRMS(rrReadings);
-                Double lnRMS =Math.log(rmsValue);
-                Double hrv = mathHelper.computeHRV(lnRMS);
-                SessionTemplate currentSession = new SessionTemplate();
-                currentSession.setLnRMS(lnRMS);
-                currentSession.setSdNN(sDNN);
-                currentSession.setRms(rmsValue);
-                currentSession.setRrValuesDump(rrDump);
-                currentSession.setStartTime(startTime);;
-                currentSession.setAvgHeartRate(meanHR);
-                currentSession.setHrvValue(hrv);
-                currentSession.setTimeElapsed(System.currentTimeMillis()-startTime);
-                currentSession.save();
-
-
-                processSuccess=true;
-            }catch (Exception e){
-                processSuccess=false;
-            }
-
-            return null;
-        }
-
-        @Override
-        public void onPostExecute(Void v){
-            if(processSuccess){
-               // isSessionLive=false;
-                pDialog.dismiss();
-                Toast.makeText(DataLinkActivity.this, "Session saved successfully", Toast.LENGTH_SHORT).show();
-            }else{
-                pDialog.dismiss();
-                Toast.makeText(DataLinkActivity.this, "Could not save session", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
 
 
 
@@ -501,5 +489,12 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 });
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+
+
+    @Override
+    public void onBackPressed(){
+        finish();
     }
 }

@@ -132,6 +132,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 final Intent intent = new Intent(MainActivity.this, DataLinkActivity.class);
                 HRVAppInstance.getAppInstance().setCurrentBLEDevice(leDevices.get(i));
                 startActivity(intent);
+                scanner.stopScanning();
             }
         });
 
@@ -168,6 +169,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+
             }
         }
     }
@@ -294,7 +296,12 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         public void stopScanning() {
             synchronized (this) {
                 isScanning = false;
-                bluetoothAdapter.stopLeScan(mLeScanCallback);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    stopBleScanForLolipop(bluetoothAdapter);
+                }else{
+                    bluetoothAdapter.stopLeScan(mLeScanCallback);
+                }
+
             }
         }
 

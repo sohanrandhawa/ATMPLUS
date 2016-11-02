@@ -124,38 +124,42 @@ public class BluetoothLeService extends Service {
             int rr_count = 0;
             if ((flag & 0x01) != 0) {
                 format = BluetoothGattCharacteristic.FORMAT_UINT16;
-               // Logger.trace("Heart rate format UINT16.");
+
                 offset = 3;
             } else {
                 format = BluetoothGattCharacteristic.FORMAT_UINT8;
-                //Logger.trace("Heart rate format UINT8.");
+
                 offset = 2;
             }
             final int heartRate = characteristic.getIntValue(format, 1);
             intent.putExtra("HEART_RATE",heartRate);
-            //Logger.trace("Received heart rate: {}", heartRate);
+
             if ((flag & 0x08) != 0) {
-                // calories present
+
                 energy = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
                 offset += 2;
-              //  Logger.trace("Received energy: {}", energy);
+
             }
             if ((flag & 0x10) != 0) {
-                // RR stuff.
+            // RR calculations
                 rr_count = ((characteristic.getValue()).length - offset) / 2;
                 int mRr_values[]={};
 
-              //  int rrValue = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+
                 ArrayList<Integer> rrArray = new ArrayList<>();
                 for (int i = 0; i < rr_count; i++) {
-                   // mRr_values[i] = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+
                     rrArray.add(characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset));
                     offset += 2;
-                    //Logger.trace("Received RR: {}", mRr_values[i]);
+
                 }
                 // add to master RR list
                 HRVAppInstance.getAppInstance().getRR_READINGS().addAll(rrArray);
+                // refer the current RR packet list in the App Global Instance
+                // to enable real-time storage in the current session object.
+                HRVAppInstance.getAppInstance().setCURRENT_RR_PACKET(rrArray);
                 intent.putExtra("RR_VALUE",rrArray.get(0));
+
             }
         }
         sendBroadcast(intent);

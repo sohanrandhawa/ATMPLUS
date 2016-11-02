@@ -3,6 +3,7 @@ package com.hrv.controller;
 import android.app.Application;
 import android.bluetooth.BluetoothDevice;
 
+import com.mobiprobe.Mobiprobe;
 import com.orm.SugarApp;
 import com.orm.SugarContext;
 
@@ -17,6 +18,7 @@ public class HRVAppInstance extends SugarApp {
 
     public static HRVAppInstance instance;
     private ArrayList<Integer> RR_READINGS = new ArrayList<>();
+    private ArrayList<Integer> CURRENT_RR_PACKET = new ArrayList<>();
 
     public BluetoothDevice getCurrentBLEDevice() {
         return currentBLEDevice;
@@ -32,9 +34,17 @@ public class HRVAppInstance extends SugarApp {
     public void onCreate(){
         super.onCreate();
         instance = this;
+        Mobiprobe.activate(this,"bd49783a");
     }
 
 
+    public synchronized ArrayList<Integer> getCURRENT_RR_PACKET() {
+        return CURRENT_RR_PACKET;
+    }
+
+    public synchronized  void setCURRENT_RR_PACKET(ArrayList<Integer> CURRENT_RR_PACKET) {
+        this.CURRENT_RR_PACKET = CURRENT_RR_PACKET;
+    }
 
     public static HRVAppInstance getAppInstance(){
         return instance;
@@ -48,6 +58,7 @@ public class HRVAppInstance extends SugarApp {
 
     @Override
     public void onTerminate() {
+        super.onTerminate();
         SugarContext.terminate();
     }
 
