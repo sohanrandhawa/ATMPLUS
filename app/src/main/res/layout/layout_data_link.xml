@@ -3,12 +3,11 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:weightSum="1.0"
     android:layout_height="match_parent">
-
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:padding="10sp"
         android:layout_weight="0.5">
 
         <TextView
@@ -25,15 +24,12 @@
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="START"
-                android:id="@+id/btnStart"/>
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:text="STOP"
-                android:id="@+id/btnStop"/>
+                android:layout_weight="1.0"
+                android:text="START-SESSION"
+                android:textColor="@android:color/white"
+                android:background="@color/green"
+                android:id="@+id/btnToggleSession"/>
+
         </LinearLayout>
         <TextView
             android:layout_width="wrap_content"
@@ -75,7 +71,6 @@
 
     </LinearLayout>
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -94,8 +89,5 @@
 
 
     </LinearLayout>
-
-
-
 
 </LinearLayout>

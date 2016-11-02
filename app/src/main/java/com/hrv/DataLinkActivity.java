@@ -8,19 +8,24 @@ import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.provider.ContactsContract;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,7 +65,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private final UUID HEART_RATE_SERVICE_UUID = UUID.fromString(HEART_RATE_SERVICE_CONST);
     private TextView mTxtVwReading;
     private TextView mtxtVwComputedRR;
-    private Button mBtnStart, mBtnStop;
+    private Button mBtnToggleSessionState;
     private long startTime=0, endTime=0, currentTime=0;
     private MathHelper mathHelper= new MathHelper();
     private TextView mTxtVwRMS;
@@ -80,14 +85,16 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onCreate(Bundle savedInstance){
         super.onCreate(savedInstance);
+        //disable screen locking, till this activity is visible to the user.
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.layout_data_link);
 
         currentBleDevice= HRVAppInstance.getAppInstance().getCurrentBLEDevice();
         final Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         mTxtVwReading=(TextView)findViewById(R.id.txtvwReading);
         mtxtVwComputedRR=(TextView)findViewById(R.id.txtvwComputedHeartRate);
-        mBtnStart=(Button)findViewById(R.id.btnStart);
-        mBtnStop=(Button)findViewById(R.id.btnStop);
+        mBtnToggleSessionState=(Button)findViewById(R.id.btnToggleSession);
+        //mBtnStop=(Button)findViewById(R.id.btnStop);
         mTxtVwRMS=(TextView)findViewById(R.id.txtvwRMS);
         mTxtVwHRV=(TextView)findViewById(R.id.txtvwHRV);
         mTxtVwElapsedTime=(TextView)findViewById(R.id.txtvwElapsedTime);
@@ -99,9 +106,9 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         pDialog.setTitle("HRV-DEMO");
         pDialog.setMessage("processing session data, please wait...");
         pDialog.setCancelable(false);
-        mBtnStop.setEnabled(false);
-        mBtnStart.setOnClickListener(this);
-        mBtnStop.setOnClickListener(this);
+
+        mBtnToggleSessionState.setOnClickListener(this);
+
         bindService(gattServiceIntent, serviceConnection, BIND_AUTO_CREATE);
 
 
@@ -118,24 +125,22 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         hrSamplesForGraph.clear();
         mGraphView.getViewport().setXAxisBoundsManual(true);
         mGraphView.getViewport().setYAxisBoundsManual(true);
-        mGraphView.getViewport().setMinX(5000);
+        mGraphView.getViewport().setMinX(lastRRValue);
         mGraphView.getViewport().setMaxX(100000);
         mGraphView.getViewport().setMinY((double)40);
         mGraphView.getViewport().setMaxY((double)90);
         mGraphView.getViewport().setDrawBorder(true);
-        mGraphView.getGridLabelRenderer().setLabelVerticalWidth(10);
         mGraphView.getGridLabelRenderer().setNumHorizontalLabels(10);
-        mGraphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
-        //mGraphView.getGridLabelRenderer().setVerticalLabelsVisible(false);
-        mGraphView.getGridLabelRenderer().setNumHorizontalLabels(5);
+       // mGraphView.getGridLabelRenderer().setHorizontalLabelsVisible(false);
+        mGraphView.getGridLabelRenderer().setNumVerticalLabels(5);
+        mGraphView.getGridLabelRenderer().setVerticalLabelsVAlign(GridLabelRenderer.VerticalLabelsVAlign.ABOVE);
+        mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
+        mGraphView.getGridLabelRenderer().reloadStyles();;
         series.setBackgroundColor(Color.argb(20,247,54,141));
         series.setColor(Color.argb(255,217,79,20));
         series.setDrawBackground(true);
-        //mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
-        mGraphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.HORIZONTAL);
-        mGraphView.getGridLabelRenderer().setLabelVerticalWidth(20);
-        //mGraphView.getGridLabelRenderer().set
-
+        series.setThickness(8);
+        series.appendData(new DataPoint(0,0),false,100);
         mGraphView.addSeries(series);
     }
 
@@ -180,9 +185,16 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                // prepareSamples(hRate,rrValue);
         //calculate heart rate value form the current RR value sample.
         double currentHR = ((double)1/rrValue)*60*1000;
+
         series.appendData(new DataPoint((double)lastRRValue,currentHR),true,100);
+        mTxtVwReading.setText(mTxtVwReading.getText().toString()+"\n "
+                            +Double.toString(lastRRValue)+" "
+                            +Double.toString(currentHR));
 
         mGraphView.removeSeries(series);
+      //  mGraphView.getViewport().setMinX(series.getHighestValueX());
+       // mGraphView.getViewport().setMaxX(series.getHighestValueX()+100000);
+        //mGraphVie
 
 
         if(hRate>100 ){
@@ -190,13 +202,6 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
             //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
             mGraphView.getViewport().setMaxY((double)(hRate+50));
         }
-        /*
-        if(hRate>70 && hRate<=90){
-            mGraphView.getViewport().setMinY((double)(hRate-10));
-            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-            mGraphView.getViewport().setMaxY((double)(hRate+10));
-        }
-        */
         if(hRate>60 && hRate<=100){
             mGraphView.getViewport().setMinY((double)(hRate-40));
             //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
@@ -206,21 +211,11 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
             //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
             mGraphView.getViewport().setMaxY((double)(hRate+35));
         }
+            mGraphView.getViewport().setScalableY(true);
+            mGraphView.addSeries(series);
+        mGraphView.scrollTo(0,0);
 
-
-          //  mGraphView.getViewport().setMinY((double)40);
-            //mGraphView.getViewport().setMaxY(190);
-        mGraphView.getViewport().setScalableY(true);
-      //  mGraphView.getViewport().setMinY((double)(hRate-20));
-        //mGraphView.getViewport().setMaxY((double)(hRate+20));
-       // mGraphView.getViewport().setMinX((double)(lastRRValue-500));
-        //mGraphView.getViewport().setMaxX((double)(lastRRValue+1500));
-
-
-        mGraphView.addSeries(series);
-        //DataPoint d = new DataPoint();
         if(isSessionLive){
-           // startTime=System.currentTimeMillis();
             computeHRfromRR();
         }
     }
@@ -376,17 +371,28 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
     @Override
     public void onClick(View view) {
-        if(view==mBtnStart){
-            isSessionLive=true;
+        if(view==mBtnToggleSessionState){
+            if(!isSessionLive){
+                isSessionLive=true;
+                mBtnToggleSessionState.setText("STOP-SESSION");
+                mBtnToggleSessionState.setBackgroundColor(Color.RED);
+            }else{
+                confirmSessionClosure();
+
+            }
+
             startTime=System.currentTimeMillis();
-            mBtnStart.setEnabled(false);
-            mBtnStop.setEnabled(true);
-        }if(view==mBtnStop){
+          //  mBtnStart.setEnabled(false);
+
+        }
+        /**
+        if(view==mBtnStop){
             isSessionLive=false;
-            mBtnStart.setEnabled(true);
-            mBtnStop.setEnabled(false);
+            //mBtnStart.setEnabled(true);
+
             saveSessionData();
         }
+         **/
     }
 
 
@@ -467,5 +473,33 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 Toast.makeText(DataLinkActivity.this, "Could not save session", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+
+
+
+    // confirm if user wants to close current session.
+
+    private void confirmSessionClosure(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Are you sure you want to stop this session ?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        isSessionLive=false;
+                        mBtnToggleSessionState.setText("START-SESSION");
+                        mBtnToggleSessionState.setBackgroundColor(ContextCompat
+                                              .getColor(DataLinkActivity.this,
+                                                        R.color.green));
+
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }
