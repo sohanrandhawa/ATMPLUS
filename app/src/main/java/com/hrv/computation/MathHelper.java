@@ -13,10 +13,10 @@ public class MathHelper {
     public synchronized double  computeSDNN(ArrayList<Integer> rrSamples){
 
         ArrayList<Integer>temp = new ArrayList<>();
-        temp.clear();;
+        temp.clear();
         temp.addAll(rrSamples);
-        double average =0;
-        double sum=0;
+        double average =0.0;
+        double sum=0.0;
         for(int currentReading :temp){
             sum=sum+(double)currentReading;
         }
@@ -38,20 +38,19 @@ public class MathHelper {
 
         double meanVariance = varianceSum/deviations.size();
 
-        double computedStandardDeviation = Math.sqrt(meanVariance);
-        return computedStandardDeviation;
+        return Math.sqrt(meanVariance);
 
     }
 
 
     public synchronized  double computeRMS(ArrayList<Integer> rrSamples){
         ArrayList<Integer>temp = new ArrayList<>();
-        temp.clear();;
+        temp.clear();
         temp.addAll(rrSamples);
         //compute the squares of the values in the sample space.
         ArrayList<Double>successiveDiffSquared = new ArrayList<>();
-        successiveDiffSquared.clear();;
-            for(int index=1;index<temp.size();index++){
+        successiveDiffSquared.clear();
+        for(int index=1;index<temp.size();index++){
                 double currentDifference = (double)(temp.get(index)-temp.get(index-1));
                 successiveDiffSquared.add(Math.pow(currentDifference,2));
             }
@@ -64,14 +63,13 @@ public class MathHelper {
                 sum=sum+currentSample;
             }
         squaredMean = sum/successiveDiffSquared.size();
-        double rmsValue = Math.sqrt(squaredMean);
-        return rmsValue;
+        return Math.sqrt(squaredMean);
 
     }
 
 
 
     public synchronized double computeHRV(double lnRMSSD){
-        return (double)((100*lnRMSSD)/6.5);
+        return (100*lnRMSSD)/6.5;
     }
 }

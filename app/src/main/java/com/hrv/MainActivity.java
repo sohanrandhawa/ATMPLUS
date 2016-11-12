@@ -28,7 +28,7 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import com.hrv.adapters.DeviceSelectorAdapter;
-import com.hrv.controller.Constants;
+
 import com.hrv.controller.HRVAppInstance;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     private Button mBtnConnectDevice;
     private BluetoothAdapter mBluetoothAdapter;
     private final int REQUEST_ENABLE_BT=11;
-    private Set<BluetoothDevice> detectedDevices ;
+
     private final long SCAN_TIMEOUT_INTERVAL =10000;//10 secs
     private final static int SCAN_DURATION = 500;
     private static BluetoothLeScanner bluetoothLeScanner;
@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     private ListView mLstVwDevices;
     private ProgressDialog pDialog;
     private final String HEART_RATE_DESCRIPTOR_STRING ="0000180d-0000-1000-8000-00805f9b34fb";
-    private UUID[] deviceUuidArray= {UUID.fromString(HEART_RATE_DESCRIPTOR_STRING)};
+    private final UUID[] deviceUuidArray= {UUID.fromString(HEART_RATE_DESCRIPTOR_STRING)};
 
 
 
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             // bluetooth is disabled, turn it on...
             final Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            return;
+
         }else{
             // since bluetooth is enabled
             // we disable the connect-bluetooth button
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     }
 
 
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+    private final BluetoothAdapter.LeScanCallback mLeScanCallback =
             new BluetoothAdapter.LeScanCallback() {
 
                 @Override
@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             public void onScanResult(int callbackType, ScanResult result) {
                 super.onScanResult(callbackType, result);
                 BluetoothDevice device = result.getDevice();
-                detectedDevices.add(device);
+
             }
 
             @Override
@@ -260,14 +260,6 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     }
 
 
-    private BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
-            // your implementation here
-                detectedDevices.add(device);
-            device.toString();
-        }
-    };
 
 
 
@@ -350,10 +342,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private  void startBleScanForLolipop(BluetoothAdapter bluetoothAdapter ){
         bluetoothLeScanner =  bluetoothAdapter.getBluetoothLeScanner();
-        ScanFilter filter = new ScanFilter.Builder()
-                            .setServiceUuid(new ParcelUuid(UUID.fromString(HEART_RATE_DESCRIPTOR_STRING)))
-                            .build();
-List<ScanFilter> filterList = new  ArrayList<ScanFilter>();
+
         sCallback =new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {

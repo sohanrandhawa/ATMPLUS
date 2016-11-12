@@ -24,6 +24,7 @@ import java.util.UUID;
  */
 
 // A service that interacts with the BLE device via the Android BLE API.
+@SuppressWarnings("ALL")
 public class BluetoothLeService extends Service {
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
@@ -96,27 +97,26 @@ public class BluetoothLeService extends Service {
                                                  BluetoothGattCharacteristic characteristic,
                                                  int status) {
                     if (status == BluetoothGatt.GATT_SUCCESS) {
-                        broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                        broadcastUpdate(characteristic);
                     }
                 }
                 @Override
                 // Characteristic notification
                 public void onCharacteristicChanged(BluetoothGatt gatt,
                                                     BluetoothGattCharacteristic characteristic) {
-                    broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+                    broadcastUpdate(characteristic);
                 }
 
             };
 
 
-    private void broadcastUpdate(final String action,
-                                 final BluetoothGattCharacteristic characteristic) {
-        final Intent intent = new Intent(action);
+    private void broadcastUpdate(final BluetoothGattCharacteristic characteristic) {
+        final Intent intent = new Intent(BluetoothLeService.ACTION_DATA_AVAILABLE);
 
         // This is special handling for the Heart Rate Measurement profile. Data
         // parsing is carried out as per profile specifications.
         if (UUID_HEART_RATE_CHARACTERTISTIC.equals(characteristic.getUuid())) {
-            byte[] data = characteristic.getValue();
+
             int flag = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
             int format = -1;
             int energy = -1;
@@ -193,17 +193,17 @@ public class BluetoothLeService extends Service {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (mBluetoothManager == null) {
                 Log.e(TAG, "Unable to initialize BluetoothManager.");
-                return false;
+                return true;
             }
         }
 
         mBluetoothAdapter = mBluetoothManager.getAdapter();
         if (mBluetoothAdapter == null) {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
-            return false;
+            return true;
         }
 
-        return true;
+        return false;
     }
 
 

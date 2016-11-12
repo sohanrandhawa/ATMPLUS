@@ -7,7 +7,7 @@
     <item
         android:id="@+id/session_history"
         android:orderInCategory="100"
-        android:title="Session History"
+        android:title="@string/session_history"
         app:showAsAction="never" />
 
 </menu>

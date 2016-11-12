@@ -10,8 +10,6 @@ import android.widget.TextView;
 import com.hrv.R;
 import com.hrv.models.SessionTemplate;
 
-import org.w3c.dom.Text;
-
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,13 +24,12 @@ import java.util.TimeZone;
 public class SessionsListAdapter extends BaseAdapter {
 
 
-    private Context parentReference;
     private LayoutInflater inflater;
     private ArrayList<SessionTemplate> data = new ArrayList<>();
 
     public SessionsListAdapter(Context context, List<SessionTemplate> sessions){
 
-        parentReference=context;
+        Context parentReference = context;
         inflater = LayoutInflater.from(context);
         data.clear();
         data.addAll(sessions);
@@ -108,8 +105,7 @@ public class SessionsListAdapter extends BaseAdapter {
         TimeZone tz = TimeZone.getTimeZone("UTC");
         SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
         df.setTimeZone(tz);
-        String time = df.format(new Date(millis));
-        return time;
+        return df.format(new Date(millis));
 
     }
 

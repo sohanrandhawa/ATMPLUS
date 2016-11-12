@@ -10,63 +10,87 @@
         android:padding="10sp"
         android:layout_weight="0.5">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtvwReading"
-            android:text="--- CONNECTING ---"
-            android:textSize="18sp"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:weightSum="1.0"
             android:orientation="horizontal">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtvwReading"
+                android:layout_weight="0.4"
+                android:text="@string/connecting"
+                android:textStyle="bold"
+                android:textSize="28sp"/>
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1.0"
-                android:text="START-SESSION"
+                android:layout_weight="0.6"
+                android:text="@string/start_session"
                 android:textColor="@android:color/white"
                 android:background="@color/green"
                 android:id="@+id/btnToggleSession"/>
 
         </LinearLayout>
-        <TextView
-            android:layout_width="wrap_content"
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/txtvwElapsedTime"
+            android:orientation="horizontal"
+            android:weightSum="1.0">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtvwElapsedTime"
+                android:textSize="16sp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtvwComputedHeartRate"
+                android:textSize="16sp"/>
+        </LinearLayout>
 
-            android:textSize="16sp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/txtvwComputedHeartRate"
-
-            android:textSize="16sp"/>
+            android:orientation="horizontal"
+            android:weightSum="1.0">
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/txtvwRMS"
-
+            android:layout_weight="0.5"
             android:textSize="16sp"/>
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/txtvwLnRMS"
-
+            android:layout_weight="0.5"
             android:textSize="16sp"/>
+            </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="1.0">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/txtvwHRV"
+            android:layout_weight="0.5"
             android:textSize="16sp"/>
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/txtvwHeartRate"
+            android:layout_weight="0.5"
             android:textSize="16sp"/>
+            </LinearLayout>
 
 
     </LinearLayout>

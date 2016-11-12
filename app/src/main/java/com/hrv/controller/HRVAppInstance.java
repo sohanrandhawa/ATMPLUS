@@ -1,6 +1,5 @@
 package com.hrv.controller;
 
-import android.app.Application;
 import android.bluetooth.BluetoothDevice;
 
 import com.mobiprobe.Mobiprobe;
@@ -16,8 +15,8 @@ import java.util.ArrayList;
 public class HRVAppInstance extends SugarApp {
 
 
-    public static HRVAppInstance instance;
-    private ArrayList<Integer> RR_READINGS = new ArrayList<>();
+    private static HRVAppInstance instance;
+    private final ArrayList<Integer> RR_READINGS = new ArrayList<>();
     private ArrayList<Integer> CURRENT_RR_PACKET = new ArrayList<>();
 
     public BluetoothDevice getCurrentBLEDevice() {

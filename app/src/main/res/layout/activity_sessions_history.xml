@@ -9,12 +9,12 @@
         android:id="@+id/txtvwTitle"
         android:layout_gravity="center"
         android:textSize="24sp"
-        android:text="Session History"/>
+        android:text="@string/session_history"/>
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/lstVwSessions"
-        android:layout_margin="10sp"></ListView>
+        android:layout_margin="10sp" />
 
 </LinearLayout>

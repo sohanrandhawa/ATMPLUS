@@ -21,14 +21,13 @@ import java.util.ArrayList;
 
 public class DeviceSelectorAdapter extends BaseAdapter implements SpinnerAdapter{
 
-    private Context parentReference;
-    private LayoutInflater mInflater;
-    private ArrayList<BluetoothDevice>bleDevices  = new ArrayList<BluetoothDevice>();
+    private final Context parentReference;
+    private ArrayList<BluetoothDevice>bleDevices  = new ArrayList<>();
 
     public DeviceSelectorAdapter(Context context, ArrayList<BluetoothDevice> devices){
             parentReference=context;
-        mInflater=LayoutInflater.from(parentReference);
-        bleDevices.clear();;
+
+        bleDevices.clear();
         bleDevices=devices;
     }
 

@@ -7,7 +7,6 @@ import android.widget.ListView;
 import com.hrv.adapters.SessionsListAdapter;
 import com.hrv.models.SessionTemplate;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
