@@ -6,6 +6,7 @@
 
     <string name="select_device">Please select device from list:</string>
     <string name="session_history">Session History</string>
+    <string name="breathing_pacer">Breathing Pacer</string>
     <string name="connecting">--- CONNECTING ---</string>
     <string name="start_session">START</string>
 </resources>

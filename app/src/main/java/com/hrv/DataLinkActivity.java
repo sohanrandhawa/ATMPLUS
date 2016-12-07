@@ -158,11 +158,17 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
 
-
-               int heartRate = intent.getIntExtra("HEART_RATE",0);
-               int rRvalue = intent.getIntExtra("RR_VALUE",0);
+            try{
+                int heartRate = intent.getIntExtra("HEART_RATE",0);
+               // Bundle extra = getIntent().getBundleExtra("RR_VALUE");
+                //int[] rrSamples = (int[]) extra.getSerializable("RR_VALUE_ARRAY");
+                   int rRvalue = intent.getIntExtra("RR_VALUE",0);
 
                 updateDataonUI(heartRate,rRvalue);
+            }catch (Exception e){
+                    e.printStackTrace();
+            }
+
 
             }
         }
@@ -171,67 +177,46 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
 
 
 
-    private void updateDataonUI(int hRate, int rrValue){
-        if(rrValue==0)return;// putting a check here to prevent infite value for Y axis of the chart
-        mTxtVwReading.setText("H.R. > "+Integer.toString(hRate)+"\n"
-                               +"R.R. > "+Integer.toString(rrValue) );
-                lastRRValue=lastRRValue+rrValue;
-               // prepareSamples(hRate,rrValue);
-        //calculate heart rate value form the current RR value sample.
-        double currentHR = ((double)1/rrValue)*60*1000;
-
-         series.appendData(new DataPoint(lastRRValue,currentHR ), true, 5000);
-        mGraphView.removeSeries(series);
-      //  mGraphView.getViewport().setMinX(series.getHighestValueX());
-       // mGraphView.getViewport().setMaxX(series.getHighestValueX()+100000);
-        //mGraphVie
+    private synchronized void   updateDataonUI(int hRate, int rrValue){
 
 
-        if(hRate>100 ){
-            mGraphView.getViewport().setMinY((double)(hRate-75));
-            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-            mGraphView.getViewport().setMaxY((double)(hRate+50));
-        }
-        if(hRate>60 && hRate<=100){
-            mGraphView.getViewport().setMinY((double)(hRate-40));
-            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-            mGraphView.getViewport().setMaxY((double)(hRate+30));
-        }if(hRate<=60){
-            mGraphView.getViewport().setMinY((double) (hRate - 15));
-            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-            mGraphView.getViewport().setMaxY((double) (hRate + 35));
-        }
+            if(rrValue==0 )return;// putting a check here to prevent infite value for Y axis of the chart
+            mTxtVwReading.setText("H.R. > "+Integer.toString(hRate)+"\n"
+                    +"R.R. > "+Integer.toString(rrValue) );
+            lastRRValue=lastRRValue+rrValue;
+            // prepareSamples(hRate,rrValue);
+            //calculate heart rate value form the current RR value sample.
+            double currentHR = ((double)1/rrValue)*60*1000;
 
-        /*
+            series.appendData(new DataPoint(lastRRValue,currentHR ), true, 5000);
+            mGraphView.removeSeries(series);
+            //  mGraphView.getViewport().setMinX(series.getHighestValueX());
+            // mGraphView.getViewport().setMaxX(series.getHighestValueX()+100000);
+            //mGraphVie
 
-        if(lastRRValue<50000){
-            mGraphView.getViewport().setMinX(5000);
-            mGraphView.getViewport().setMaxX(100000);
-        }if(lastRRValue>50000 && lastRRValue<500000){
-            mGraphView.getViewport().setMinX(50000);
-            mGraphView.getViewport().setMaxX(1000000);
-        }if(lastRRValue>500000 && lastRRValue<5000000){
-            mGraphView.getViewport().setMinX(500000);
-            mGraphView.getViewport().setMaxX(10000000);
-        }if(lastRRValue>5000000 && lastRRValue<50000000){
-            mGraphView.getViewport().setMinX(5000000);
-            mGraphView.getViewport().setMaxX(100000000);
-        }
-        */
+
+            if(hRate>100 ){
+                mGraphView.getViewport().setMinY((double)(hRate-75));
+                //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+                mGraphView.getViewport().setMaxY((double)(hRate+50));
+            }
+            if(hRate>60 && hRate<=100){
+                mGraphView.getViewport().setMinY((double)(hRate-40));
+                //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+                mGraphView.getViewport().setMaxY((double)(hRate+30));
+            }if(hRate<=60){
+                mGraphView.getViewport().setMinY((double) (hRate - 15));
+                //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+                mGraphView.getViewport().setMaxY((double) (hRate + 35));
+            }
             mGraphView.getViewport().setScalableY(true);
             mGraphView.addSeries(series);
 
-        //mGraphView.scrollTo(0,0);
-        //mGraphView.scr
+            if (isSessionLive){
+                computeHRfromRR();
+            }
 
-        if (isSessionLive){
-            computeHRfromRR();
-        }
     }
-
-
-
-
 
     private void computeHRfromRR(){
         try {

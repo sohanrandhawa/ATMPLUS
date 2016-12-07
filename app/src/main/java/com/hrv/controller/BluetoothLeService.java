@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -158,11 +159,17 @@ public class BluetoothLeService extends Service {
                 // refer the current RR packet list in the App Global Instance
                 // to enable real-time storage in the current session object.
                 HRVAppInstance.getAppInstance().setCURRENT_RR_PACKET(rrArray);
-                intent.putExtra("RR_VALUE",rrArray.get(0));
+                //Bundle extra = new Bundle();
+                //extra.putSerializable("RR_VALUE_ARRAY", rrArray);
+                //intent.putExtra("RR_VALUE",extra);
+                for(int i=0;i<rrArray.size();i++){
+                    intent.putExtra("RR_VALUE",rrArray.get(i));
+                    sendBroadcast(intent);
+                }
 
             }
         }
-        sendBroadcast(intent);
+
     }
 
 

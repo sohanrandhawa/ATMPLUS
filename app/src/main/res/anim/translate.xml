@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translate xmlns:android="http://schemas.android.com/res/apk/android"
+    android:fromXDelta="200"
+    android:toXDelta="0"
+    android:fromYDelta="200"
+    android:toYDelta="0"
+    android:duration="4000"
+    android:startOffset="1000"
+    android:repeatCount="0"
+    android:repeatMode="restart"
+    android:fillEnabled="false"
+    android:fillBefore="false"
+    android:fillAfter="false">
+
+
+</translate>
+
+

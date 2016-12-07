@@ -154,6 +154,10 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             startActivity(new Intent(MainActivity.this,ActivitySessionsHistory.class
             ));
             return true;
+        }if (id == R.id.breathing_pacer) {
+            startActivity(new Intent(MainActivity.this,ActivityPacerSurface.class
+            ));
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
