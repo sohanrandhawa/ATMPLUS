@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         mLstVwDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                final Intent intent = new Intent(MainActivity.this, DataLinkActivity.class);
+                final Intent intent = new Intent(MainActivity.this, ActivityPacerSurface.class);
                 HRVAppInstance.getAppInstance().setCurrentBLEDevice(leDevices.get(i));
                 startActivity(intent);
                 scanner.stopScanning();

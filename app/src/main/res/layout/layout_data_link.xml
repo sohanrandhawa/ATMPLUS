@@ -100,18 +100,13 @@
         android:layout_height="match_parent"
         android:id="@+id/layoutChart"
         android:orientation="vertical"
-        android:layout_weight="0.5"
-        >
+        android:layout_weight="0.5">
 
         <com.jjoe64.graphview.GraphView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginBottom="5sp"
-
-
             android:id="@+id/graph" />
-
-
     </LinearLayout>
 
 </LinearLayout>

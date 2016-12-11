@@ -13,7 +13,7 @@
         android:name=".controller.HRVAppInstance"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"
+        <activity android:name=".ActivityPacerSurface"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,7 +27,7 @@
             android:screenOrientation="portrait"/>
         <activity android:name=".DataLinkActivity"
             android:screenOrientation="portrait"/>
-        <activity android:name=".ActivityPacerSurface"
+        <activity android:name=".MainActivity"
             android:screenOrientation="portrait"/>
 
         <service android:name="com.hrv.controller.BluetoothLeService" android:enabled="true"/>
