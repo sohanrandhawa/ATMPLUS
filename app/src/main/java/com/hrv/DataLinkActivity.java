@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInstaller;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -27,6 +28,7 @@ import com.github.mikephil.charting.charts.LineChart;
 import com.hrv.computation.MathHelper;
 import com.hrv.controller.BluetoothLeService;
 import com.hrv.controller.HRVAppInstance;
+import com.hrv.models.SessionSamplesTemplate;
 import com.hrv.models.SessionTemplate;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -36,6 +38,7 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -68,6 +71,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private GraphView mGraphView;
     private int lastRRValue=0;
     private final LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+    private final SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 
     private LineChart mLineChart;
@@ -93,7 +97,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         mTxtVwHeartRate=(TextView)findViewById(R.id.txtvwHeartRate);
         mGraphView = (GraphView) findViewById(R.id.graph);
         mTxtVwLnRms=(TextView)findViewById(R.id.txtvwLnRMS);
-       // mLineChart=(LineChart)findViewById(R.id.mpGraph);
+        // mLineChart=(LineChart)findViewById(R.id.mpGraph);
         pDialog = new ProgressDialog(DataLinkActivity.this);
         pDialog.setTitle("HRV-DEMO");
         pDialog.setMessage("processing session data, please wait...");
@@ -154,20 +158,20 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
 
                 // connect to heart rate service for this gatt server.
-                    initHeartRateReading();
+                initHeartRateReading();
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
 
-            try{
-                int heartRate = intent.getIntExtra("HEART_RATE",0);
-               // Bundle extra = getIntent().getBundleExtra("RR_VALUE");
-                //int[] rrSamples = (int[]) extra.getSerializable("RR_VALUE_ARRAY");
-                   int rRvalue = intent.getIntExtra("RR_VALUE",0);
+                try{
+                    int heartRate = intent.getIntExtra("HEART_RATE",0);
+                    // Bundle extra = getIntent().getBundleExtra("RR_VALUE");
+                    //int[] rrSamples = (int[]) extra.getSerializable("RR_VALUE_ARRAY");
+                    int rRvalue = intent.getIntExtra("RR_VALUE",0);
 
-                updateDataonUI(heartRate,rRvalue);
-            }catch (Exception e){
+                    updateDataonUI(heartRate,rRvalue);
+                }catch (Exception e){
                     e.printStackTrace();
-            }
+                }
 
 
             }
@@ -180,45 +184,45 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
     private synchronized void   updateDataonUI(int hRate, int rrValue){
 
 
-            if(rrValue==0 )return;// putting a check here to prevent infite value for Y axis of the chart
-            mTxtVwReading.setText("H.R. > "+Integer.toString(hRate)+"\n"
-                    +"R.R. > "+Integer.toString(rrValue) );
-            lastRRValue=lastRRValue+rrValue;
-            // prepareSamples(hRate,rrValue);
-            //calculate heart rate value form the current RR value sample.
-            double currentHR = ((double)1/rrValue)*60*1000;
+        if(rrValue==0 )return;// putting a check here to prevent infite value for Y axis of the chart
+        mTxtVwReading.setText("H.R. > "+Integer.toString(hRate)+"\n"
+                +"R.R. > "+Integer.toString(rrValue) );
+        lastRRValue=lastRRValue+rrValue;
+        // prepareSamples(hRate,rrValue);
+        //calculate heart rate value form the current RR value sample.
+        double currentHR = ((double)1/rrValue)*60*1000;
 
-            series.appendData(new DataPoint(lastRRValue,currentHR ), true, 5000);
-            mGraphView.removeSeries(series);
-            //  mGraphView.getViewport().setMinX(series.getHighestValueX());
-            // mGraphView.getViewport().setMaxX(series.getHighestValueX()+100000);
-            //mGraphVie
+        series.appendData(new DataPoint(lastRRValue,currentHR ), true, 5000);
+        mGraphView.removeSeries(series);
+        //  mGraphView.getViewport().setMinX(series.getHighestValueX());
+        // mGraphView.getViewport().setMaxX(series.getHighestValueX()+100000);
+        //mGraphVie
 
 
-            if(hRate>100 ){
-                mGraphView.getViewport().setMinY((double)(hRate-75));
-                //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-                mGraphView.getViewport().setMaxY((double)(hRate+50));
-            }
-            if(hRate>60 && hRate<=100){
-                mGraphView.getViewport().setMinY((double)(hRate-40));
-                //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-                mGraphView.getViewport().setMaxY((double)(hRate+30));
-            }if(hRate<=60){
-                mGraphView.getViewport().setMinY((double) (hRate - 15));
-                //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
-                mGraphView.getViewport().setMaxY((double) (hRate + 35));
-            }
-            mGraphView.getViewport().setScalableY(true);
-            mGraphView.addSeries(series);
+        if(hRate>100 ){
+            mGraphView.getViewport().setMinY((double)(hRate-75));
+            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+            mGraphView.getViewport().setMaxY((double)(hRate+50));
+        }
+        if(hRate>60 && hRate<=100){
+            mGraphView.getViewport().setMinY((double)(hRate-40));
+            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+            mGraphView.getViewport().setMaxY((double)(hRate+30));
+        }if(hRate<=60){
+            mGraphView.getViewport().setMinY((double) (hRate - 15));
+            //mGraphView.getViewport().setMaxY(Collections.max(hrSamplesForGraph));
+            mGraphView.getViewport().setMaxY((double) (hRate + 35));
+        }
+        mGraphView.getViewport().setScalableY(true);
+        mGraphView.addSeries(series);
 
-            if (isSessionLive){
-                computeHRfromRR();
-            }
+        if (isSessionLive){
+            computeHRfromRR(hRate);
+        }
 
     }
 
-    private void computeHRfromRR(){
+    private void computeHRfromRR(final int heartrate){
         try {
             if (isSessionLive) {
                 long timeElapsedInMilis = System.currentTimeMillis() - startTime;
@@ -232,13 +236,13 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                     sum +=  d;
                 double meanRR = (double)sum/rrReadings.size();
                 double meanRR_secs = meanRR/1000;
-             final   double meanHR = (double) 60/meanRR_secs;
+                final   double meanHR = (double) 60/meanRR_secs;
 
                 //  Double heartRateMeasured = (double) 60/((sum / (rrReadings.size()) / 1000));
-             final   Double SDNN = mathHelper.computeSDNN(rrReadings);
-            final    Double rmsValue = mathHelper.computeRMS(rrReadings);
-              final  Double lnRMSSD = Math.log(rmsValue);
-              final  Double hrv = mathHelper.computeHRV(lnRMSSD);
+                final   Double SDNN = mathHelper.computeSDNN(rrReadings);
+                final    Double rmsValue = mathHelper.computeRMS(rrReadings);
+                final  Double lnRMSSD = Math.log(rmsValue);
+                final  Double hrv = mathHelper.computeHRV(lnRMSSD);
                 DecimalFormat df = new DecimalFormat("#.##");
                 String strSDNN = df.format(SDNN);
                 String strRMSSD = df.format(rmsValue);
@@ -278,6 +282,12 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                                             +"-" +rrDump);
                         }
                         //  currentSession.setRrValuesDump(rrDump);
+                        SessionSamplesTemplate sample = new SessionSamplesTemplate();
+                        Calendar c = Calendar.getInstance();
+                        String formattedDate = dateformat.format(c.getTime());
+                        sample.setHr_value(Integer.toString(heartrate));
+                        sample.setSample_timestamp(formattedDate);
+                        currentSession.getSamples().add(sample);
                         currentSession.setStartTime(startTime);
                         currentSession.setAvgHeartRate(meanHR);
                         currentSession.setHrvValue(hrv);
@@ -294,84 +304,7 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-/**
-    private void computeHRfromRR() {
 
-        runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            if (isSessionLive) {
-                                long timeElapsedInMilis = System.currentTimeMillis() - startTime;
-                                //long timeInSeconds = timeElapsedInMilis / 1000;
-                                // ArrayList<Integer> rrReadings = HRVAppInstance.getAppInstance().getRR_READINGS();
-                                ArrayList<Integer> rrReadings = new ArrayList<>();
-                                rrReadings.clear();
-                                rrReadings.addAll(HRVAppInstance.getAppInstance().getRR_READINGS());
-                                long sum = 0;
-                                for (Integer d : rrReadings)
-                                    sum +=  d;
-                                double meanRR = (double)sum/rrReadings.size();
-                                double meanRR_secs = meanRR/1000;
-                                double meanHR = (double) 60/meanRR_secs;
-
-                                //  Double heartRateMeasured = (double) 60/((sum / (rrReadings.size()) / 1000));
-                                Double SDNN = mathHelper.computeSDNN(rrReadings);
-                                Double rmsValue = mathHelper.computeRMS(rrReadings);
-                                Double lnRMSSD = Math.log(rmsValue);
-                                Double hrv = mathHelper.computeHRV(lnRMSSD);
-                                DecimalFormat df = new DecimalFormat("#.##");
-                                String strSDNN = df.format(SDNN);
-                                String strRMSSD = df.format(rmsValue);
-                                String strLnRMSSD = df.format(lnRMSSD);
-                                String strHRV = df.format(hrv);
-                                String strHRate = df.format(meanHR);
-
-                                mtxtVwComputedRR.setText("SDNN:  ->  " + strSDNN);
-                                mTxtVwRMS.setText("RMS:  ->  " + strRMSSD);
-                                mTxtVwLnRms.setText("LnRMS:  ->  " + strLnRMSSD);
-                                mTxtVwHRV.setText("HRV: ->" + strHRV);
-                                mTxtVwElapsedTime.setText("Session duration: "+millisToMinutes(timeElapsedInMilis));
-                                mTxtVwHeartRate.setText("Heart Rate:  "+strHRate);
-
-                                // update the current session object, with the latest set of data.
-                                currentSession.setLnRMS(lnRMSSD);
-                                currentSession.setSdNN(SDNN);
-                                currentSession.setRms(rmsValue);
-                                String rrDump="";
-                                if(currentSession.getRrValuesDump().equalsIgnoreCase("")){
-                                    ArrayList<Integer> tempRRData = new ArrayList<>();
-                                    tempRRData.clear();
-                                    tempRRData.addAll(HRVAppInstance.getAppInstance().getCURRENT_RR_PACKET());
-                                    for (int d : tempRRData) {
-                                        sum += d;
-                                        rrDump=rrDump+"-"+Integer.toString(d);
-                                    }
-                                    currentSession.setRrValuesDump(rrDump);
-                                }else{
-                                    currentSession.setRrValuesDump(
-                                            currentSession.getRrValuesDump()
-                                                    +"-" +rrDump);
-                                }
-                                //  currentSession.setRrValuesDump(rrDump);
-                                currentSession.setStartTime(startTime);
-                                currentSession.setAvgHeartRate(meanHR);
-                                currentSession.setHrvValue(hrv);
-                                currentSession.setTimeElapsed(System.currentTimeMillis() - startTime);
-                                currentSession.save();
-
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-        );
-
-
-    }
-**/
 
     private void initHeartRateReading(){
         try{
@@ -471,22 +404,23 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                 mBtnToggleSessionState.setText("STOP");
                 mBtnToggleSessionState.setBackgroundColor(Color.RED);
                 currentSession=new SessionTemplate();// initialize a new session object
+                currentSession.setSessionType(1); // this is a heart rate session
             }else{
                 confirmSessionClosure();
 
             }
 
             //startTime=System.currentTimeMillis();
-          //  mBtnStart.setEnabled(false);
+            //  mBtnStart.setEnabled(false);
 
         }
         /**
-        if(view==mBtnStop){
-            isSessionLive=false;
-            //mBtnStart.setEnabled(true);
+         if(view==mBtnStop){
+         isSessionLive=false;
+         //mBtnStart.setEnabled(true);
 
-            saveSessionData();
-        }
+         saveSessionData();
+         }
          **/
     }
 
@@ -514,8 +448,15 @@ public class DataLinkActivity extends AppCompatActivity implements View.OnClickL
                         isSessionLive=false;
                         mBtnToggleSessionState.setText("START");
                         mBtnToggleSessionState.setBackgroundColor(ContextCompat
-                                              .getColor(DataLinkActivity.this,
-                                                        R.color.green));
+                                .getColor(DataLinkActivity.this,
+                                        R.color.green));
+                        Calendar c = Calendar.getInstance();
+                        String formattedDate = dateformat.format(c.getTime());
+                        currentSession.setEndTime(formattedDate);
+                        currentSession.save();
+                        HRVAppInstance.getAppInstance().setCURRENT_SESSION(currentSession);
+                        startActivity(new Intent(DataLinkActivity.this, SessionSummaryActivity.class));
+                        finish();
 
                     }
                 })

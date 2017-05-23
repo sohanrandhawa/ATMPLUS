@@ -7,6 +7,15 @@
     <string name="select_device">Please select device from list:</string>
     <string name="session_history">Session History</string>
     <string name="breathing_pacer">Breathing Pacer</string>
+    <string name="heart_rate_monitor">Heart Rate Monitor</string>
     <string name="connecting">--- CONNECTING ---</string>
     <string name="start_session">START</string>
+    <string name="pace_mode_manual">MANUAL</string>
+    <string name="pace_mode_auto">AUTO</string>
+    <string name="server_error">Server error</string>
+    <string name="sync_in_progress">Sync in progress, please wait...</string>
+    <string name="response_parse_error">Error is parsing server response.</string>
+    <string name="validating_please_wait">Authenticating. Please wait...</string>
+    <string name="signing_up_please_wait">Signing Up. Please wait...</string>
+
 </resources>

@@ -10,6 +10,8 @@ import android.widget.TextView;
 import com.hrv.R;
 import com.hrv.models.SessionTemplate;
 
+import org.w3c.dom.Text;
+
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -65,6 +67,7 @@ public class SessionsListAdapter extends BaseAdapter {
             holder.mTxtVwSessionLnRMS=(TextView)view.findViewById(R.id.txtvwSessionLnRSDD);
             holder.mTxtVwSessionHRV=(TextView)view.findViewById(R.id.txtvwSessionHRV);
             holder.mTxtVwSessionHR=(TextView)view.findViewById(R.id.txtvwMeanHR);
+            holder.mTxtVwSessionType=(TextView)view.findViewById(R.id.txtvwSessionType);
             view.setTag(holder);
         }else{
             holder =(ViewHolder)view.getTag();
@@ -95,6 +98,13 @@ public class SessionsListAdapter extends BaseAdapter {
         holder.mTxtVwSessionRMS.setText("RMSSD: "+strRMSSD);
         holder.mTxtVwSessionLnRMS.setText("LnRMSSD: "+strLnRMSSD);
         holder.mTxtVwSessionHRV.setText("HRV: "+df.format(data.get(i).getHrvValue()));
+        String sessionType="";
+        if(data.get(i).getSessionType()==1){
+            sessionType="HEART RATE";
+        }if(data.get(i).getSessionType()==2){
+            sessionType="BREATHING EXCERCISE";
+        }
+        holder.mTxtVwSessionType.setText(sessionType);
 
 
         return view;
@@ -117,6 +127,7 @@ public class SessionsListAdapter extends BaseAdapter {
         private TextView mTxtVwSessionLnRMS;
         private TextView mTxtVwSessionHRV;
         private TextView mTxtVwSessionHR;
+        private TextView mTxtVwSessionType;
 
     }
 }

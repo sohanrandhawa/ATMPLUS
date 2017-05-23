@@ -26,6 +26,8 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hrv.adapters.DeviceSelectorAdapter;
 
@@ -53,7 +55,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     private ProgressDialog pDialog;
     private final String HEART_RATE_DESCRIPTOR_STRING ="0000180d-0000-1000-8000-00805f9b34fb";
     private final UUID[] deviceUuidArray= {UUID.fromString(HEART_RATE_DESCRIPTOR_STRING)};
-
+    private TextView mTxtVwConnectionSate;
 
 
     @Override
@@ -118,7 +120,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     // initialise the UI elements
 
     private void initUI(){
-
+        mTxtVwConnectionSate=(TextView)findViewById(R.id.txtvwConnectedDevice);
         pDialog = new ProgressDialog(MainActivity.this);
         pDialog.setCancelable(false);
         pDialog.setMessage("Scanning for devices, please wait..");
@@ -131,7 +133,8 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 final Intent intent = new Intent(MainActivity.this, ActivityPacerSurface.class);
                 HRVAppInstance.getAppInstance().setCurrentBLEDevice(leDevices.get(i));
-                startActivity(intent);
+               // startActivity(intent);
+                mTxtVwConnectionSate.setText("Connected Device - "+leDevices.get(i).getName());
                 scanner.stopScanning();
             }
         });
@@ -149,14 +152,27 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        if (id == R.id.heart_rate_monitor) {
 
+            if(HRVAppInstance.getAppInstance().getCurrentBLEDevice()!=null){
+                startActivity(new Intent(MainActivity.this,DataLinkActivity.class));
+            }else{
+                Toast.makeText(MainActivity.this,"Please select an available device",Toast.LENGTH_LONG).show();;
+            }
+
+
+            return true;
+        }
         if (id == R.id.session_history) {
             startActivity(new Intent(MainActivity.this,ActivitySessionsHistory.class
             ));
             return true;
         }if (id == R.id.breathing_pacer) {
-            startActivity(new Intent(MainActivity.this,ActivityPacerSurface.class
-            ));
+            if(HRVAppInstance.getAppInstance().getCurrentBLEDevice()!=null){
+                startActivity(new Intent(MainActivity.this,ActivityPacerSurface.class));
+            }else{
+                Toast.makeText(MainActivity.this,"Please select an available device",Toast.LENGTH_LONG).show();;
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
